@@ -118,7 +118,7 @@ class role_openstack::control(
   # ovs_local_ip false means internal address which by default is public address
     ovs_local_ip => false,
     network_vlan_ranges => undef,
-    bridge_interface => 'eth0',
+    bridge_interface => 'eth1',
     external_bridge_name => 'br-ex',
     bridge_uplinks => undef,
     bridge_mappings => undef,
