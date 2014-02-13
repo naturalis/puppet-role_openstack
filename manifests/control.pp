@@ -35,7 +35,7 @@ class role_openstack::control(
     mysql_account_security => true,
     mysql_bind_address => '0.0.0.0',
     sql_idle_timeout => undef,
-    allowed_hosts => '%',
+    allowed_hosts => '0.0.0.0',
     mysql_ssl => false,
     mysql_ca => undef,
     mysql_cert => undef,
