@@ -1,7 +1,7 @@
 class role_openstack::control(
 
 ){
-  class {'openstack::control':
+  class {'openstack::controller':
 # Required Network
   public_address => $::ipaddress_eth0,
   admin_email => 'aut@naturalis.nl',
