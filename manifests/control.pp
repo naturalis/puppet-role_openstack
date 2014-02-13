@@ -67,7 +67,7 @@ class role_openstack::control(
 # Nova Networking
   public_interface => 'eth0',
   private_interface => 'eth1',
-  internal_address => false,
+  internal_address =>  $::ipaddress_eth0,
   admin_address => false,
   network_manager => 'nova.network.manager.FlatDHCPManager',
   fixed_range => '10.0.0.0/24',
