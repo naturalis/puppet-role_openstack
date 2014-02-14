@@ -144,4 +144,10 @@ class role_openstack::control(
     enabled => true
 
   }
+
+  concat::fragment { 'set_offline_compression':
+    target => '/etc/openstack-dashboard/local_settings.py',
+    content => 'COMPRESS_OFFLINE = True',
+    notify => [Service['apache2'],Service['memcached']],
+  }
 }
