@@ -1,4 +1,4 @@
-class role_openstack::control(
+class role_openstack::compute(
 
 ){
   
