@@ -3,7 +3,7 @@ class role_openstack::control(
 ){
   
   class {'openstack::repo':
-    before =>> Class['openstack::compute'],
+    before => Class['openstack::compute'],
   }
 
   class {'openstack::compute':
