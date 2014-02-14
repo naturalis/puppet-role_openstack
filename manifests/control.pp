@@ -154,8 +154,7 @@ class role_openstack::control(
   ini_setting { 'set_offline_compression':
     path    => '/etc/openstack-dashboard/local_settings.py',
     section => '',
-    key_val_separator => '=',
-    setting => "COMPRESS_OFFLINE",
+    setting => 'COMPRESS_OFFLINE',
     value   => 'True',
     ensure  => present,
     require => Class['openstack::controller'],
