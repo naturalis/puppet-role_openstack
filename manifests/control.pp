@@ -143,7 +143,7 @@ class role_openstack::control(
     log_facility => 'LOG_USER',
     enabled => true
 
-  } ->
+  } 
 
   ini_setting { 'set_offline_compression':
     path    => '/etc/openstack-dashboard/local_settings.py',
@@ -151,6 +151,7 @@ class role_openstack::control(
     setting => 'COMPRESS_OFFLINE',
     value   => 'True',
     ensure  => present,
+    require => File['/etc/openstack-dashboard/local_settings.py'],
     notify => [Service['apache2'],Service['memcached']],
   }
 }

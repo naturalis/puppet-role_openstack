@@ -50,26 +50,26 @@ class role_openstack::control(
     purge_nova_config => false,
     libvirt_vif_driver => 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   # Rabbit
-    rabbit_host => '127.0.0.1',
+    rabbit_host => '10.61.2.69',
     rabbit_hosts => false,
     rabbit_user => 'openstack',
     rabbit_virtual_host => '/',
   # Glance
-    glance_api_servers => false,
+    glance_api_servers => '10.61.2.69',
   # Virtualization
-    libvirt_type => 'kvm',
+    libvirt_type => 'qemu',
   # VNC
     vnc_enabled => true,
-    vncproxy_host => undef,
+    vncproxy_host => '10.61.2.69',
     vncserver_listen => false,
   # cinder / volumes
     manage_volumes => true,
     cinder_volume_driver => 'iscsi',
-    cinder_db_password => false,
+    cinder_db_password => 'Openstack_123',
     cinder_db_user => 'cinder',
     cinder_db_name => 'cinder',
     volume_group => 'cinder-volumes',
-    iscsi_ip_address => '127.0.0.1',
+    iscsi_ip_address => '10.61.2.69',
     setup_test_volume => false,
     cinder_rbd_user => 'volumes',
     cinder_rbd_pool => 'volumes',
