@@ -78,7 +78,7 @@ class role_openstack::compute(
     migration_support => false,
     verbose => false,
     force_config_drive => false,
-    use_syslog => false,
+   # use_syslog => false,
     log_facility => 'LOG_USER',
     enabled => true,
   }
