@@ -145,10 +145,20 @@ class role_openstack::control(
 
   }
 
-  concat::fragment { 'set_offline_compression':
-    target => '/etc/openstack-dashboard/local_settings.py',
-    content => 'COMPRESS_OFFLINE = True',
-    notify => [Service['apache2'],Service['memcached']],
+  #concat::fragment { 'set_offline_compression':
+  #  target => '/etc/openstack-dashboard/local_settings.py',
+  #  content => 'COMPRESS_OFFLINE = True',
+  #  notify => [Service['apache2'],Service['memcached']],
+  #  require => Class['openstack::controller'],
+  #}
+  ini_setting { 'set_offline_compression':
+    path    => '/etc/openstack-dashboard/local_settings.py',
+    section => '',
+    key_val_separator => '=',
+    setting => "COMPRESS_OFFLINE",
+    value   => 'True',
+    ensure  => present,
     require => Class['openstack::controller'],
+    notify => [Service['apache2'],Service['memcached']],
   }
 }
