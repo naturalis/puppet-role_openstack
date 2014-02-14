@@ -79,7 +79,7 @@ class role_openstack::compute(
     verbose => false,
     force_config_drive => false,
    # use_syslog => false,
-    log_facility => 'LOG_USER',
+   # log_facility => 'LOG_USER',
     enabled => true,
   }
 }
