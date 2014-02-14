@@ -152,6 +152,6 @@ class role_openstack::control(
     value   => 'True',
     ensure  => present,
     require => File['/etc/openstack-dashboard/local_settings.py'],
-    notify => [Service['apache2'],Service['memcached']],
+    #notify => [Service['apache2'],Service['memcached']],
   }
 }
