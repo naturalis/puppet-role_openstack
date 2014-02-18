@@ -55,7 +55,7 @@ class role_openstack::compute(
     rabbit_user => 'openstack',
     rabbit_virtual_host => '/',
   # Glance
-    glance_api_servers => '10.61.2.69',
+    glance_api_servers => '10.61.2.69:9292',
   # Virtualization
     libvirt_type => 'qemu',
   # VNC
