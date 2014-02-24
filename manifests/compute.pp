@@ -1,5 +1,6 @@
 class role_openstack::compute(
   $libvirt_type = 'qemu',
+  $volume_backend = 'lvm',
 ){
   
   class {'openstack::repo':
@@ -63,7 +64,8 @@ class role_openstack::compute(
     vncproxy_host => '10.61.2.69',
     vncserver_listen => false,
   # cinder / volumes
-    manage_volumes => true,
+  # manage_volumes => true, 
+    manage_volumes => false,
     cinder_volume_driver => 'iscsi',
     cinder_db_password => 'Openstack_123',
     cinder_db_user => 'cinder',
@@ -103,5 +105,20 @@ class role_openstack::compute(
     ensure            => present,
     require           => File['/etc/nova/nova.conf'],
     notify            => Service['nova-compute'],
+  }
+
+  
+
+  if volume_backend == 'lvm' {
+    ini_setting { 'set_libvirt_images_volume_group':
+      path              => '/etc/nova/cinder.conf',
+      key_val_separator => '=',    
+      section           => 'DEFAULT',
+      setting           => 'volume_driver',
+      value             => 'cinder.volume.drivers.lvm.LVMISCSIDriver',
+      ensure            => present,
+      require           => File['/etc/nova/nova.conf'],
+      notify            => Service['nova-compute'],
+    }
   }
 }
