@@ -101,7 +101,7 @@ class role_openstack::compute(
     key_val_separator => '=',    
     section           => 'DEFAULT',
     setting           => 'libvirt_images_volume_group',
-    value             => 'cinder-volumes',
+    value             => 'instance-volumes',
     ensure            => present,
     require           => File['/etc/nova/nova.conf'],
     notify            => Service['nova-compute'],
@@ -109,16 +109,5 @@ class role_openstack::compute(
 
   
 
-  if volume_backend == 'lvm' {
-    ini_setting { 'set_libvirt_images_volume_group':
-      path              => '/etc/nova/cinder.conf',
-      key_val_separator => '=',    
-      section           => 'DEFAULT',
-      setting           => 'volume_driver',
-      value             => 'cinder.volume.drivers.lvm.LVMISCSIDriver',
-      ensure            => present,
-      require           => File['/etc/nova/nova.conf'],
-      notify            => Service['nova-compute'],
-    }
-  }
+
 }
