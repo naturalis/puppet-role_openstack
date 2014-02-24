@@ -84,22 +84,24 @@ class role_openstack::compute(
   }
   
   ini_setting { 'set_libvirt_images_type':
-    path    => '/etc/nova/nova.conf',
-    section => 'DEFAULT',
-    setting => 'libvirt_images_type',
-    value   => 'lvm',
-    ensure  => present,
-    require => File['/etc/nova/nova.conf'],
-    #notify => [Service['apache2'],Service['memcached']],
+    path              => '/etc/nova/nova.conf',
+    section           => 'DEFAULT',
+    key_val_separator => '=',    
+    setting           => 'libvirt_images_type',
+    value             => 'lvm',
+    ensure            => present,
+    require           => File['/etc/nova/nova.conf'],
+    notify            => Service['nova-compute'],
   }
 
   ini_setting { 'set_libvirt_images_volume_group':
-    path    => '/etc/nova/nova.conf',
-    section => 'DEFAULT',
-    setting => 'libvirt_images_volume_group',
-    value   => 'cinder-volumes',
-    ensure  => present,
-    require => File['/etc/nova/nova.conf'],
-    #notify => [Service['apache2'],Service['memcached']],
+    path              => '/etc/nova/nova.conf',
+    key_val_separator => '=',    
+    section           => 'DEFAULT',
+    setting           => 'libvirt_images_volume_group',
+    value             => 'cinder-volumes',
+    ensure            => present,
+    require           => File['/etc/nova/nova.conf'],
+    notify            => Service['nova-compute'],
   }
 }
