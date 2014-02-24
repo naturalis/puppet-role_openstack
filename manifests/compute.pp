@@ -4,7 +4,7 @@ class role_openstack::compute(
 ){
   
   class {'openstack::repo':
-    before => Class['openstack::compute'],
+    before => Class['openstack::compute'], 
   }
 
   class {'openstack::compute':
