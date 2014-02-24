@@ -1,5 +1,5 @@
 class role_openstack::compute(
-
+  $libvirt_type = 'qemu',
 ){
   
   class {'openstack::repo':
