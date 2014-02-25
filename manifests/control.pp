@@ -7,9 +7,15 @@ class role_openstack::control(
     notice('not using local storage for cinder/glace')
   }else{
     # do use local storage for glance/cinder
+    
+    package { 'lvm2':
+      ensure => installed,
+    }
+
     physical_volume { $volume_disks:
       ensure => present,
       unless_vg => 'instance-volumes',
+      require => Package['lvm2'],
       #no before is needed because is it hardcoded in the lvm module
     }
 
