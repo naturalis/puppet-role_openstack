@@ -10,27 +10,27 @@ class role_openstack::compute(
 
   physical_volume { $instance_storage_disks:
     ensure => present,
-    unless_vg => 'instance-volumes',
+    #unless_vg => 'instance-volumes',
     #no before is needed because is it hardcoded in the lvm module
   }
 
   volume_group {'instance-volumes':
     ensure => present,
     physical_volumes => $instance_storage_disks,
-    create_only => true,
+    #create_only => true,
     before => Class['openstack::repo'],
   }
 
   
   class {'openstack::repo': 
-    before => Exec['apt-get-update after repo addition']
-  }
+#    before => Exec['apt-get-update after repo addition']
+  } ->
 
   exec {'apt-get-update after repo addition':
     command => '/usr/bin/apt-get update',
     unless => '/usr/bin/test -f /etc/apt/sources.list.d/ubuntu-cloud-archive.list',
-    before => Class['openstack::compute'],
-  }
+ #   before => Class['openstack::compute'],
+  } ->
 
   class {'openstack::compute':
   	 # Required Network
