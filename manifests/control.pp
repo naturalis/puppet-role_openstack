@@ -10,7 +10,7 @@ class role_openstack::control(
     
     physical_volume { $volume_disks:
       ensure => present,
-      unless_vg => 'cinder-volumes',
+      #unless_vg => 'cinder-volumes',
       #no before is needed because is it hardcoded in the lvm module
     }
 
