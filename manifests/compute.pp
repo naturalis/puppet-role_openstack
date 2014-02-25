@@ -21,12 +21,14 @@ class role_openstack::compute(
     before => Class['openstack::repo'],
   }
 
-  class {'openstack::repo': }
+  
+  class {'openstack::repo': 
+    before => Exec['apt-get-update after repo addition']
+  }
 
   exec {'apt-get-update after repo addition':
     command => '/usr/bin/apt-get update',
     unless => '/usr/bin/test -f /etc/apt/sources.list.d/ubuntu-cloud-archive.list'
-    require => Class['openstack::repo'],
     before => Class['openstack::compute'],
   }
 
