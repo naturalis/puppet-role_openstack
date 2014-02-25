@@ -17,7 +17,7 @@ class role_openstack::control(
     volume_group {'cinder-volumes':
       ensure => present,
       physical_volumes => $volume_disks,
-      createonly => true,
+      #createonly => true,
       before => Class['openstack::repo'],
     }
   }
