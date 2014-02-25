@@ -1,8 +1,26 @@
 class role_openstack::compute(
+  $instance_storage_disks = [],
   $libvirt_type = 'qemu',
   $volume_backend = 'lvm',
 ){
   
+  if size($instance_storage_disks) < 1 {
+    fail('instance storage disks cannot be an empty array')
+  }
+
+  physical_volume { $instance_storage_disks:
+    ensure => present,
+    unless_vg => 'instance-volumes',
+    #no before is needed because is it hardcoded in the lvm module
+  }
+
+  volume_group {'instance-volumes':
+    ensure => present,
+    physical_volumes => $instance_storage_disks,
+    create_only => true,
+    before => Class['openstack::repo'],
+  }
+
   class {'openstack::repo':
     before => Class['openstack::compute'], 
   }
@@ -106,8 +124,5 @@ class role_openstack::compute(
     require           => File['/etc/nova/nova.conf'],
     notify            => Service['nova-compute'],
   }
-
-  
-
 
 }

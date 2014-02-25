@@ -1,7 +1,27 @@
 class role_openstack::control(
-
+  $volume_disks = [],
 ){
   
+  if size($volume_disks) < 1 {
+    #do not use local storage for glance/cinder
+    notice('not using local storage for cinder/glace')
+  }else{
+    # do use local storage for glance/cinder
+    physical_volume { $volume_disks:
+      ensure => present,
+      unless_vg => 'instance-volumes',
+      #no before is needed because is it hardcoded in the lvm module
+    }
+
+    volume_group {'cinder-volumes':
+      ensure => present,
+      physical_volumes => $volume_disks,
+      create_only => true,
+      before => Class['openstack::repo'],
+    }
+  }
+  
+
   class {'openstack::repo':
     before => Class['openstack::controller'],
   }
@@ -30,7 +50,7 @@ class role_openstack::control(
     cinder_db_password     => 'Openstack_123',
     swift_user_password    => 'Openstack_123',
   # Database
-    db_host => '127.0.0.1',
+    db_host => $::ipaddress_eth0,
     db_type => 'mysql',
     mysql_account_security => true,
     mysql_bind_address => '0.0.0.0',
@@ -41,7 +61,7 @@ class role_openstack::control(
     mysql_cert => undef,
     mysql_key => undef,
   # Keystone
-    keystone_host => '127.0.0.1',
+    keystone_host => $::ipaddress_eth0,
     keystone_db_user => 'keystone',
     keystone_db_dbname => 'keystone',
     keystone_admin_tenant => 'admin',
@@ -83,14 +103,14 @@ class role_openstack::control(
     auto_assign_floating_ip => false,
     network_config => {},
   # Rabbit
-    rabbit_host => '127.0.0.1',
+    rabbit_host => $::ipaddress_eth0,
     rabbit_hosts => false,
     rabbit_cluster_nodes => false,
     rabbit_user => 'openstack',
     rabbit_virtual_host => '/',
   # Horizon
     horizon => true,
-    cache_server_ip => '127.0.0.1',
+    cache_server_ip => $::ipaddress_eth0,
     cache_server_port => '11211',
     horizon_app_links => undef,
   # VNC
@@ -108,7 +128,7 @@ class role_openstack::control(
     manage_volumes => true,
     volume_group => 'cinder-volumes',
     setup_test_volume => true,
-    iscsi_ip_address => '127.0.0.1',
+    iscsi_ip_address => $::ipaddress_eth0,
   # Neutron
     neutron => true,
     physical_network => 'default',
@@ -130,7 +150,7 @@ class role_openstack::control(
     firewall_driver => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
     neutron_db_user => 'neutron',
     neutron_db_name => 'neutron',
-    neutron_auth_url => 'http://127.0.0.1:35357/v2.0',
+    neutron_auth_url => "http://${::ipaddress_eth0}:35357/v2.0",
     enable_neutron_server => true,
     security_group_api => 'neutron',
   # swift
