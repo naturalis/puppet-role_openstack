@@ -133,7 +133,7 @@ class role_openstack::control(
     cinder_bind_address => '0.0.0.0',
     manage_volumes => true,
     volume_group => 'cinder-volumes',
-    setup_test_volume => true,
+    setup_test_volume => false,
     iscsi_ip_address => $::ipaddress_eth0,
   # Neutron
     neutron => true,
