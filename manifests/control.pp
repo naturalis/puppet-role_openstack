@@ -12,6 +12,8 @@ class role_openstack::control(
     Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
+
+    class { 'role_openstack::ceph::package': }
   }
 
   #configure eth1 to be up

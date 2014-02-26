@@ -13,6 +13,9 @@ class role_openstack::compute(
     Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
+
+    class { 'role_openstack::ceph::package': }
+
   }
 
   if size($instance_storage_disks) < 1 {
