@@ -209,7 +209,7 @@ class role_openstack::control(
       db_user            => 'cinder',
       manage_volumes     => true,
       debug              => false,
-      verbose            => false
+      verbose            => false,
       rbd_user           => 'cinder',
       rbd_pool           => 'volumes',
       rbd_secret_uuid    => 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
