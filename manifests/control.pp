@@ -109,7 +109,7 @@ class role_openstack::control(
     glance_db_dbname => 'glance',
     glance_api_servers => undef,
     glance_backend => 'rbd',
-    glance_rbd_store_user => 'glace',
+    glance_rbd_store_user => 'glance',
     glance_rbd_store_pool => 'images',
   # Glance Swift Backend
     swift_store_user => 'swift_store_user',
