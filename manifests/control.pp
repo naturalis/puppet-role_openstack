@@ -4,7 +4,7 @@ class role_openstack::control(
 ){
   
 
-  if $ceph-fsid {
+  if $ceph_fsid {
     file {'/etc/ceph':
       ensure => directory,
     }
