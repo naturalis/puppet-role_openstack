@@ -35,7 +35,7 @@ class role_openstack::compute(
     } ~>
 
     exec {'set secret value':
-      command => "/usr/bin/virsh secret-set-value --secret ${cinder_rbd_secret_uuid} --base64 \$(cat /etc/ceph/ceph.client.cinder.keyring)",
+      command => "/usr/bin/virsh secret-set-value --secret ${cinder_rbd_secret_uuid} --base64 \$(/bin/cat /etc/ceph/ceph.client.cinder.keyring)",
      # require => [File['/etc/ceph/ceph.client.cinder.keyring'],Exec['define secret']],
       notify => Service['nova-compute'],
     }
