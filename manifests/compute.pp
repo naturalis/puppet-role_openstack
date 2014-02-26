@@ -2,8 +2,19 @@ class role_openstack::compute(
   $instance_storage_disks = [],
   $libvirt_type = 'qemu',
   $volume_backend = 'lvm',
+  $ceph-fsid = false,
 ){
   
+  if $ceph-fsid {
+    file {'/etc/ceph':
+      ensure => directory,
+    }
+
+    Ini_setting <<| tag == "cephconf-${fsid}" |>> {
+      require => File['/etc/ceph'],
+    }
+  }
+
   if size($instance_storage_disks) < 1 {
     fail('instance storage disks cannot be an empty array')
   }

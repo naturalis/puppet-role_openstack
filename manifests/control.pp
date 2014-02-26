@@ -1,7 +1,19 @@
 class role_openstack::control(
   $volume_disks = [],
+  $ceph-fsid = false,
 ){
   
+
+  if $ceph-fsid {
+    file {'/etc/ceph':
+      ensure => directory,
+    }
+
+    Ini_setting <<| tag == "cephconf-${fsid}" |>> {
+      require => File['/etc/ceph'],
+    }
+  }
+
   #configure eth1 to be up
   file {'/etc/network/interfaces':
     ensure => present,
