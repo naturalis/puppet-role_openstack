@@ -2,6 +2,18 @@ class role_openstack::control(
   $volume_disks = [],
 ){
   
+  #configure eth1 to be up
+  file {'/etc/network/interfaces':
+    ensure => present,
+    mode   => '0644',
+    content => template('role_openstack/interfaces.erb')
+  }
+
+  exec {'set interface eth1 to up':
+    command => '/sbin/ifconfig eth1 up',
+    unless => '/sbin/ifconfig | /bin/grep eth1',
+  }
+
   if size($volume_disks) < 1 {
     #do not use local storage for glance/cinder
     notice('not using local storage for cinder/glace')
