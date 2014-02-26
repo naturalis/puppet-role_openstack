@@ -12,6 +12,7 @@ class role_openstack::control(
   exec {'set interface eth1 to up':
     command => '/sbin/ifconfig eth1 up',
     unless => '/sbin/ifconfig | /bin/grep eth1',
+    require => File['/etc/network/interfaces']
   }
 
   if size($volume_disks) < 1 {
