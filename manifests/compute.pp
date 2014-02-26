@@ -2,15 +2,15 @@ class role_openstack::compute(
   $instance_storage_disks = [],
   $libvirt_type = 'qemu',
   $volume_backend = 'lvm',
-  $ceph_fsid = false,
+  $ceph_fsid = 'false',
 ){
   
-  if $ceph_fsid {
+  if $ceph_fsid != 'false' {
     file {'/etc/ceph':
       ensure => directory,
     }
 
-    Ini_setting <<| tag == "cephconf-${fsid}" |>> {
+    Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
   }

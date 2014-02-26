@@ -1,15 +1,15 @@
 class role_openstack::control(
   $volume_disks = [],
-  $ceph_fsid = false,
+  $ceph_fsid = 'false',
 ){
   
 
-  if $ceph_fsid {
+  if $ceph_fsid != {
     file {'/etc/ceph':
       ensure => directory,
     }
 
-    Ini_setting <<| tag == "cephconf-${fsid}" |>> {
+    Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
   }
