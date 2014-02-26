@@ -2,7 +2,7 @@ class role_openstack::compute(
   $instance_storage_disks = [],
   $libvirt_type = 'qemu',
   $volume_backend = 'lvm',
-  $ceph-fsid = false,
+  $ceph_fsid = false,
 ){
   
   if $ceph-fsid {

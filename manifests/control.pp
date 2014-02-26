@@ -1,6 +1,6 @@
 class role_openstack::control(
   $volume_disks = [],
-  $ceph-fsid = false,
+  $ceph_fsid = false,
 ){
   
 
