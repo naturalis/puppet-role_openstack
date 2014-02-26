@@ -108,9 +108,9 @@ class role_openstack::control(
     glance_db_user => 'glance',
     glance_db_dbname => 'glance',
     glance_api_servers => undef,
-    glance_backend => 'file',
-    glance_rbd_store_user => undef,
-    glance_rbd_store_pool => undef,
+    glance_backend => 'rbd',
+    glance_rbd_store_user => 'glace',
+    glance_rbd_store_pool => 'images',
   # Glance Swift Backend
     swift_store_user => 'swift_store_user',
     swift_store_key => 'swift_store_key',
@@ -154,14 +154,14 @@ class role_openstack::control(
     verbose => false,
   # cinder
   # if the cinder management components should be installed
-    cinder => true,
-    cinder_db_user => 'cinder',
-    cinder_db_dbname => 'cinder',
-    cinder_bind_address => '0.0.0.0',
-    manage_volumes => true,
-    volume_group => 'cinder-volumes',
-    setup_test_volume => false,
-    iscsi_ip_address => $::ipaddress_eth0,
+    cinder => false,
+#    cinder_db_user => 'cinder',
+#    cinder_db_dbname => 'cinder',
+#    cinder_bind_address => '0.0.0.0',
+#    manage_volumes => true,
+#    volume_group => 'cinder-volumes',
+#    setup_test_volume => false,
+#    iscsi_ip_address => $::ipaddress_eth0,
   # Neutron
     neutron => true,
     physical_network => 'default',
@@ -197,6 +197,24 @@ class role_openstack::control(
     enabled => true
 
   } 
+
+  class { 'openstack::cinder::all':
+      keystone_auth_host => '127.0.0.1',
+      keystone_password  => 'Openstack_123',
+      rabbit_userid      => 'openstack',
+      rabbit_password    => 'Openstack_123',
+      rabbit_host        => '127.0.0.1',
+      db_password        => 'Openstack_123',
+      db_dbname          => 'cinder',
+      db_user            => 'cinder',
+      manage_volumes     => true,
+      debug              => false,
+      verbose            => false
+      rbd_user           => 'cinder',
+      rbd_pool           => 'volumes',
+      rbd_secret_uuid    => 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
+      volume_driver      => 'rbd',
+    }
 
   ini_setting { 'set_offline_compression':
     path    => '/etc/openstack-dashboard/local_settings.py',

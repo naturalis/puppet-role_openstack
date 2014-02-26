@@ -3,6 +3,9 @@ class role_openstack::compute(
   $libvirt_type = 'qemu',
   $volume_backend = 'lvm',
   $ceph_fsid = 'false',
+  $ceph_cinder_key = 'AQCv7Q1T+FPiMBAAQ5qdQr/aQ+nNg7PRRV7S6g==',
+  $cinder_rbd_secret_uuid = 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
+
 ){
   
   if $ceph_fsid != 'false' {
@@ -15,6 +18,29 @@ class role_openstack::compute(
     }
 
     class { 'role_openstack::ceph::package': }
+
+    file {'/etc/ceph/ceph.client.cinder.keyring':
+      ensure => present,
+      content => template('role_openstack/ceph.client.cinder.keyring.erb'),
+    } ~>
+    
+    file {'/tmp/secret.xml':
+      ensure => present,
+      content => template('role_openstack/secret.xml.erb')
+    } ~>
+
+    exec {'define secret':
+      command => '/usr/bin/virsh secret-define --file /tmp/secret.xml',
+    #  require => File['/tmp/secret.xml'],
+    } ~>
+
+    exec {'set secret value':
+      command => "/usr/bin/virsh secret-set-value --secret ${cinder_rbd_secret_uuid} --base64 \$(cat /etc/ceph/ceph.client.cinder.keyring)",
+     # require => [File['/etc/ceph/ceph.client.cinder.keyring'],Exec['define secret']],
+      notify => Service['nova-compute'],
+    }
+
+
 
   }
 
