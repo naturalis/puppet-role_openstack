@@ -36,9 +36,6 @@ class role_openstack::control(
 
     class { 'role_openstack::ceph::package': }
 
-    packge {'python-ceph':
-      ensure => present,
-    }
   }
 
   #configure eth1 to be up
