@@ -220,6 +220,23 @@ class role_openstack::control(
 
   } 
 
+  
+  class { 'cinder::db::mysql':
+        user          => 'cinder',
+        password      => $cinder_db_password,
+        dbname        => 'cinder',
+        allowed_hosts => '%',
+        charset       => 'latin1',
+  } ->
+
+  class { 'cinder::keystone::auth':
+        password         => $cinder_user_password,
+        public_address   => $::ipaddress_eth0l,
+        public_protocol  => 'http',
+        internal_address => $::ipaddress_eth0,
+        region           => 'Leiden',
+  } ->
+
   class { 'openstack::cinder::all':
       keystone_auth_host => '127.0.0.1',
       keystone_password  => $keystone_db_password,
@@ -230,13 +247,13 @@ class role_openstack::control(
       db_dbname          => 'cinder',
       db_user            => 'cinder',
       manage_volumes     => true,
-      debug              => true,
-      verbose            => true,
+      debug              => false,
+      verbose            => false,
       rbd_user           => 'cinder',
       rbd_pool           => 'volumes',
       rbd_secret_uuid    => $rbd_secret_uuid,
       volume_driver      => 'rbd',
-    }
+  }
 
   ini_setting { 'set_offline_compression':
     path    => '/etc/openstack-dashboard/local_settings.py',
