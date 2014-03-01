@@ -291,12 +291,12 @@ class role_openstack::control(
   class { 'neutron::server':
       auth_host           => '127.0.0.1',
       auth_password       => $neutron_user_password,
-      database_connection => 'mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1',
+      database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
       #check database connection entry, might be very wrong. 
   }
   
   class { 'neutron::plugins::ovs':
-      sql_connection      => 'mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1',
+      sql_connection      => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
       sql_idle_timeout    => '3600',
       tenant_network_type => 'gre',
   }
