@@ -297,7 +297,9 @@ class role_openstack::control(
           Class[neutron::agents::ovs],
           Class[neutron::agents::metadata],
           Class[neutron::agents::dhcp],
-          Class[neutron::agents::l3]
+          Class[neutron::agents::l3],
+          Class[neutron::keystone::auth],
+          Class[neutron::agents::vpnaas]
         ],
   }
 
@@ -358,6 +360,8 @@ class role_openstack::control(
       use_namespaces => true,
       debug          => false,
   }
+
+  class { 'neutron::agents::vpnaas': }
   
   #end of neutron part
 
