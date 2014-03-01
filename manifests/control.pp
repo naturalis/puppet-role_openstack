@@ -370,13 +370,13 @@ class role_openstack::control(
   
   #end of neutron part
 
-  ini_setting { 'set_offline_compression':
-    path    => '/etc/openstack-dashboard/local_settings.py',
-    section => '',
-    setting => 'COMPRESS_OFFLINE',
-    value   => 'True',
-    ensure  => present,
-    require => File['/etc/openstack-dashboard/local_settings.py'],
+  #ini_setting { 'set_offline_compression':
+  #  path    => '/etc/openstack-dashboard/local_settings.py',
+  #  section => '',
+  #  setting => 'COMPRESS_OFFLINE',
+  #  value   => 'True',
+  #  ensure  => present,
+  #  require => File['/etc/openstack-dashboard/local_settings.py'],
     #notify => [Service['apache2'],Service['memcached']],
-  }
+  #}
 }
