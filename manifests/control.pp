@@ -255,6 +255,12 @@ class role_openstack::control(
       volume_driver      => 'rbd',
   }
 
+
+  
+
+
+
+
   ini_setting { 'set_offline_compression':
     path    => '/etc/openstack-dashboard/local_settings.py',
     section => '',
