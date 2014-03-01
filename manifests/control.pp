@@ -265,6 +265,15 @@ class role_openstack::control(
         dbname        => 'neutron',
         allowed_hosts => '%',
         charset       => 'latin1',
+        before        => [
+          Class[neutron],
+          Class[neutron::server],
+          Class[neutron::plugins::ovs],
+          Class[neutron::agents::ovs],
+          Class[neutron::agents::metadata],
+          Class[neutron::agents::dhcp],
+          Class[neutron::agents::l3]
+        ],
   }
 
 
