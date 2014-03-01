@@ -230,7 +230,15 @@ class role_openstack::control(
         dbname        => 'cinder',
         allowed_hosts => '%',
         charset       => 'latin1',
-  } ->
+        before        => [
+          Class[cinder::keystone::auth],
+          Class[cinder],
+          Class[cinder::api],
+          Class[cinder::scheduler],
+          Class[cinder::volume],
+          Class[cinder::volume::rbd]
+        ],
+  }
 
   class { 'cinder::keystone::auth':
         password         => $cinder_user_password,
@@ -238,25 +246,58 @@ class role_openstack::control(
         public_protocol  => 'http',
         internal_address => $::ipaddress_eth0,
         region           => 'RegionOne',
-  } ->
-
-  class { 'openstack::cinder::all':
-      keystone_auth_host => '127.0.0.1',
-      keystone_password  => $keystone_db_password,
-      rabbit_userid      => 'openstack',
-      rabbit_password    => $rabbit_password,
-      rabbit_host        => '127.0.0.1',
-      db_password        => $cinder_db_password,
-      db_dbname          => 'cinder',
-      db_user            => 'cinder',
-      manage_volumes     => true,
-      debug              => false,
-      verbose            => false,
-      rbd_user           => 'cinder',
-      rbd_pool           => 'volumes',
-      rbd_secret_uuid    => $rbd_secret_uuid,
-      volume_driver      => 'rbd',
   }
+
+  #class { 'openstack::cinder::all':
+  #    keystone_auth_host => '127.0.0.1',
+  #    keystone_password  => $keystone_db_password,
+  #    rabbit_userid      => 'openstack',
+  #    rabbit_password    => $rabbit_password,
+  #    rabbit_host        => '127.0.0.1',
+  #    db_password        => $cinder_db_password,
+  #    db_dbname          => 'cinder',
+  #    db_user            => 'cinder',
+  #    manage_volumes     => true,
+  #    debug              => false,
+  #    verbose            => false,
+  #    rbd_user           => 'cinder',
+  #    rbd_pool           => 'volumes',
+  #    rbd_secret_uuid    => $rbd_secret_uuid,
+  #    volume_driver      => 'rbd',
+  #}
+
+  class {'cinder':
+    sql_connection      => "mysql://cinder:${cinder_db_password}@127.0.0.1/cinder?charset=latin1",
+    rabbit_userid       => 'openstack',
+    rabbit_password     => $rabbit_password,
+    rabbit_host         => '127.0.0.1',
+    rabbit_virtual_host => '/',
+    debug               => false,
+  }
+
+  class {'cinder::api':
+    keystone_password       => $cinder_user_password,
+    keystone_user           => 'cinder',
+    keystone_auth_host      => '127.0.0.1',
+    keystone_auth_protocol  => 'http',
+    bind_host               => '0.0.0.0',
+    enabled                 => true,
+  }
+
+  class {'cinder::scheduler':
+    scheduler_driver       => 'cinder.scheduler.simple.SimpleScheduler',
+  }
+
+  class {'::cinder::volume': }
+
+  class { 'cinder::volume::rbd':
+          rbd_pool        => 'volumes',
+          rbd_user        => 'cinder',
+          rbd_secret_uuid => $rbd_secret_uuid,
+  }
+
+
+
  
   #neutron part.
   class { 'neutron::db::mysql':
