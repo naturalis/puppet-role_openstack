@@ -249,23 +249,6 @@ class role_openstack::control(
         region           => $region,
   }
 
-  #class { 'openstack::cinder::all':
-  #    keystone_auth_host => '127.0.0.1',
-  #    keystone_password  => $keystone_db_password,
-  #    rabbit_userid      => 'openstack',
-  #    rabbit_password    => $rabbit_password,
-  #    rabbit_host        => '127.0.0.1',
-  #    db_password        => $cinder_db_password,
-  #    db_dbname          => 'cinder',
-  #    db_user            => 'cinder',
-  #    manage_volumes     => true,
-  #    debug              => false,
-  #    verbose            => false,
-  #    rbd_user           => 'cinder',
-  #    rbd_pool           => 'volumes',
-  #    rbd_secret_uuid    => $rbd_secret_uuid,
-  #    volume_driver      => 'rbd',
-  #}
 
   class {'cinder':
     sql_connection      => "mysql://cinder:${cinder_db_password}@127.0.0.1/cinder?charset=latin1",
@@ -318,6 +301,15 @@ class role_openstack::control(
         ],
   }
 
+  class { 'neutron::keystone::auth':
+        password         => $neutron_user_password,
+        public_address   => $::ipaddress_eth0,
+        public_protocol  => 'http',
+        admin_address    => $::ipaddress_eth0,
+        internal_address => $::ipaddress_eth0,
+        region           => $region,
+  }
+
 
   class { 'neutron':
     enabled               => true,
@@ -334,7 +326,6 @@ class role_openstack::control(
       auth_host           => '127.0.0.1',
       auth_password       => $neutron_user_password,
       database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
-      #check database connection entry, might be very wrong. 
   }
   
   class { 'neutron::plugins::ovs':
