@@ -121,7 +121,7 @@ class role_openstack::control(
     keystone_db_dbname      => 'keystone',
     keystone_admin_tenant   => 'admin',
     keystone_bind_address   => '0.0.0.0',
-    region                  => 'Leiden',
+    region                  => 'RegionOne',
     public_protocol         => 'http',
     keystone_token_driver   => 'keystone.token.backends.sql.Token',
     token_format            => 'PKI',
@@ -237,7 +237,7 @@ class role_openstack::control(
         public_address   => $::ipaddress_eth0,
         public_protocol  => 'http',
         internal_address => $::ipaddress_eth0,
-        region           => 'Leiden',
+        region           => 'RegionOne',
   } ->
 
   class { 'openstack::cinder::all':
@@ -313,7 +313,7 @@ class role_openstack::control(
       auth_password  => $neutron_user_password,
       shared_secret  => $neutron_shared_secret,
       auth_url       => 'http://127.0.0.1:35357/v2.0',
-      debug          => 'fasle',
+      debug          => true,
   }
 
   class { 'neutron::agents::dhcp':
