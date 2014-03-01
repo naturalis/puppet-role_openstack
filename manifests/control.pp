@@ -293,8 +293,8 @@ class role_openstack::control(
 
   class { 'neutron::agents::ovs':
       enable_tunneling => true,
-      bridge_uplinks   => "br-ex:eth1",
-      bridge_mappings  => "default:br-ex",
+      bridge_uplinks   => ['br-ex:eth1'],
+      bridge_mappings  => ['default:br-ex'],
       local_ip         => $::ipaddress_eth0,
       firewall_driver  => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
   }
