@@ -234,7 +234,7 @@ class role_openstack::control(
 
   class { 'cinder::keystone::auth':
         password         => $cinder_user_password,
-        public_address   => $::ipaddress_eth0l,
+        public_address   => $::ipaddress_eth0,
         public_protocol  => 'http',
         internal_address => $::ipaddress_eth0,
         region           => 'Leiden',
