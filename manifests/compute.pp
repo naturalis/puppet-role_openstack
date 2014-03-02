@@ -56,7 +56,7 @@ class role_openstack::compute(
   $raid_string = join($raid_disks, " ")
   $raid_disk_number = size($raid_disks)
   $raid_dev_name_split = split($raid_dev_name,'/')
-  $raid_dev_only_name = $raid_dev_split[-1]
+  $raid_dev_only_name = $raid_dev_name_split[-1]
   notice($raid_dev_only_name)
   exec {'create raid':
     command => "/sbin/mdadm --create --auto=yes ${raid_dev_name} --level=10 --raid-devices=${raid_disk_number} ${raid_string}",
