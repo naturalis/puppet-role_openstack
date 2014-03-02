@@ -58,7 +58,7 @@ class role_openstack::compute(
 
   exec {'create raid':
     command => "/sbin/mdadm --create --auto=yes ${raid_dev_name} --level=10 --raid-devices=${raid_disk_number} ${raid_string}",
-    unless  => "/bin/grep ${raid_dev_name}",
+    unless  => "/bin/lsblk | /bin/grep ${raid_dev_name}",
   }
 
   physical_volume { $raid_dev_name:
