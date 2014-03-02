@@ -1,10 +1,20 @@
 class role_openstack::compute(
-  $instance_storage_disks = [],
-  $libvirt_type = 'qemu',
+  
+  $ceph_cinder_key,
+  $cinder_rbd_secret_uuid,
+  $nova_user_password,
+  $rabbit_password,
+  $nova_db_password,
+  $control_ip_address,
+  $neutron_user_password,
+
+  $raid_disks = [],
+  $raid_dev_name = '/dev/md2',
+  $libvirt_type = 'kvm',
   $volume_backend = 'lvm',
   $ceph_fsid = 'false',
-  $ceph_cinder_key = 'AQCv7Q1T+FPiMBAAQ5qdQr/aQ+nNg7PRRV7S6g==',
-  $cinder_rbd_secret_uuid = 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
+  
+  
 
 ){
   
@@ -18,11 +28,6 @@ class role_openstack::compute(
     }
 
     class { 'role_openstack::ceph::package': }
-
-    file {'/etc/ceph/ceph.client.cinder.keyring':
-      ensure => present,
-      content => template('role_openstack/ceph.client.cinder.keyring.erb'),
-    } ~>
     
     file {'/tmp/secret.xml':
       ensure => present,
@@ -44,20 +49,26 @@ class role_openstack::compute(
 
   }
 
-  if size($instance_storage_disks) < 1 {
-    fail('instance storage disks cannot be an empty array')
+  if size($raid_disks) < 4 {
+    fail('raid disks must have at least 4 disks, otherwise raid 10 can\'t be made')
   }
 
-  physical_volume { $instance_storage_disks:
+  $raid_string = join($raid_disks, " ")
+  $raid_disk_number = size($raid_disks)
+
+  exec {'create raid':
+    command => "/sbin/mdadm --create --auto=yes ${raid_dev_name} --level=10 --raid-devices=${raid_disk_number} ${raid_string}",
+    unless  => "/bin/grep ${raid_dev_name}",
+  }
+
+  physical_volume { $raid_dev_name:
     ensure => present,
-    #unless_vg => 'instance-volumes',
-    #no before is needed because is it hardcoded in the lvm module
+    require => Exec['create raid']
   }
 
   volume_group {'instance-volumes':
     ensure => present,
-    physical_volumes => $instance_storage_disks,
-    #create_only => true,
+    physical_volumes => $raid_dev_name,
     before => Class['openstack::repo'],
   }
 
@@ -76,12 +87,12 @@ class role_openstack::compute(
   	 # Required Network
     internal_address => $::ipaddress_eth0,
   # Required Nova
-    nova_user_password => 'Openstack_123',
+    nova_user_password => $nova_user_password,
   # Required Rabbit
-    rabbit_password => 'Openstack_123',
+    rabbit_password => $rabbit_password,
   # DB
-    nova_db_password => 'Openstack_123',
-    db_host => '10.61.2.69',
+    nova_db_password => $nova_db_password,
+    db_host => $control_ip_address,
   # Nova Database
     nova_db_user => 'nova',
     nova_db_name => 'nova',
@@ -95,15 +106,15 @@ class role_openstack::compute(
     enabled_apis => 'ec2,osapi_compute,metadata',
   # Neutron
     neutron => true,
-    neutron_user_password => 'Openstack_123',
+    neutron_user_password => $neutron_user_password,
     neutron_admin_tenant_name => 'services',
     neutron_admin_user => 'neutron',
     enable_ovs_agent => true,
     enable_l3_agent => false,
     enable_dhcp_agent => false,
-    neutron_auth_url => 'http://10.61.2.69:35357/v2.0',
-    keystone_host => '10.61.2.69',
-    neutron_host => '10.61.2.69',
+    neutron_auth_url => "http://${control_ip_address}:35357/v2.0",
+    keystone_host => $control_ip_address,
+    neutron_host => $control_ip_address,
     ovs_enable_tunneling => true,
     ovs_local_ip => $::ipaddress_eth0,
     neutron_firewall_driver => false,
@@ -116,31 +127,31 @@ class role_openstack::compute(
     purge_nova_config => false,
     libvirt_vif_driver => 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   # Rabbit
-    rabbit_host => '10.61.2.69',
+    rabbit_host => $control_ip_address,
     rabbit_hosts => false,
     rabbit_user => 'openstack',
     rabbit_virtual_host => '/',
   # Glance
-    glance_api_servers => '10.61.2.69:9292',
+    glance_api_servers => "${control_ip_address}:9292",
   # Virtualization
-    libvirt_type => 'qemu',
+    libvirt_type => $libvirt_type,
   # VNC
     vnc_enabled => true,
-    vncproxy_host => '10.61.2.69',
+    vncproxy_host => $control_ip_address,
     vncserver_listen => false,
   # cinder / volumes
   # manage_volumes => true, 
-    manage_volumes => false,
-    cinder_volume_driver => 'iscsi',
-    cinder_db_password => 'Openstack_123',
-    cinder_db_user => 'cinder',
-    cinder_db_name => 'cinder',
-    volume_group => 'cinder-volumes',
-    iscsi_ip_address => '10.61.2.69',
-    setup_test_volume => false,
-    cinder_rbd_user => 'volumes',
-    cinder_rbd_pool => 'volumes',
-    cinder_rbd_secret_uuid => false,
+  #  manage_volumes => false,
+  #  cinder_volume_driver => 'iscsi',
+  #  cinder_db_password => 'Openstack_123',
+  #  cinder_db_user => 'cinder',
+  #  cinder_db_name => 'cinder',
+  #  volume_group => 'cinder-volumes',
+  #  iscsi_ip_address => '10.61.2.69',
+  #  setup_test_volume => false,
+  #  cinder_rbd_user => 'volumes',
+  #  cinder_rbd_pool => 'volumes',
+  #  cinder_rbd_secret_uuid => false,
   # General
     migration_support => false,
     verbose => false,
