@@ -49,8 +49,8 @@ class role_openstack::compute(
 
   }
 
-  if $raid_disk_number < 4 {
-    fail("raid disks must have at least 4 (current = ${raid_disk_number}) disks, otherwise raid 10 can\'t be made")
+  if size($raid_disks) < 4 {
+    fail("raid disks (${raid_disks}) must have at least 4 (current = ${raid_disk_number}) disks, otherwise raid 10 can\'t be made")
   }
 
   $raid_string = join($raid_disks, " ")
