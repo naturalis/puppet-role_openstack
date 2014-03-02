@@ -87,7 +87,7 @@ class role_openstack::compute(
       Class[nova::compute::neutron],
       Class[neutron],
       Class[neutron::agents::ovs],
-      Class[nova::neutron::network]
+      Class[nova::network::neutron]
     ],
   }
   
