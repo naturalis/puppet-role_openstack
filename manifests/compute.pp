@@ -36,7 +36,7 @@ class role_openstack::compute(
 
     exec {'define secret':
       command => '/usr/bin/virsh secret-define --file /tmp/secret.xml',
-    #  require => File['/tmp/secret.xml'],
+      require =>  Class[nova::compute::libvirt],
     } ~>
 
     exec {'set secret value':
@@ -74,8 +74,8 @@ class role_openstack::compute(
 
   
   class {'openstack::repo': 
-#    before => Exec['apt-get-update after repo addition']
-  } ->
+    before => Exec['apt-get-update after repo addition'],
+  } 
 
   exec {'apt-get-update after repo addition':
     command => '/usr/bin/apt-get update',
