@@ -17,7 +17,7 @@ class role_openstack::compute(
   
 
 ){
-
+  include stdlib
   if $ceph_fsid != 'false' {
     file {'/etc/ceph':
       ensure => directory,
