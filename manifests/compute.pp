@@ -130,8 +130,8 @@ class role_openstack::compute(
   }
 
   class { 'neutron::agents::ovs':
-      bridge_uplinks   => [],
-      bridge_mappings  => [],
+      bridge_uplinks   => undef,
+      bridge_mappings  => undef,
       enable_tunneling => true,
       local_ip         => $::ipaddress_eth0,
   }
