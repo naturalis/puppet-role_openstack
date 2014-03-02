@@ -55,7 +55,7 @@ class role_openstack::compute(
 
   $raid_string = join($raid_disks, " ")
   $raid_disk_number = size($raid_disks)
-  $raid_dev_name_split = split($raid_dev_name,"/")
+  $raid_dev_name_split = split($raid_dev_name,'/')
   $raid_dev_only_name = $raid_dev_split[-1]
   notice($raid_dev_only_name)
   exec {'create raid':
