@@ -17,7 +17,7 @@ class role_openstack::compute(
   
 
 ){
-  
+
   if $ceph_fsid != 'false' {
     file {'/etc/ceph':
       ensure => directory,
@@ -49,7 +49,7 @@ class role_openstack::compute(
 
   }
 
-  if size($raid_disk_number) < 4 {
+  if $raid_disk_number < 4 {
     fail("raid disks must have at least 4 (current = ${raid_disk_number}) disks, otherwise raid 10 can\'t be made")
   }
 
