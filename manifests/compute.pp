@@ -8,11 +8,12 @@ class role_openstack::compute(
   $control_ip_address,
   $neutron_user_password,
 
-  $raid_disks = [],
-  $raid_dev_name = '/dev/md2',
-  $libvirt_type = 'kvm',
+  $raid_disks     = [],
+  $raid_dev_name  = '/dev/md2',
+  $libvirt_type   = 'kvm',
   $volume_backend = 'lvm',
-  $ceph_fsid = 'false',
+  $ceph_fsid      = 'false',
+  $region         = 'Leiden',
   
   
 
@@ -143,7 +144,8 @@ class role_openstack::compute(
       neutron_admin_username    => 'neutron',
       neutron_admin_tenant_name => 'services',
       neutron_admin_auth_url    => "http://${control_ip_address}:35357/v2.0",
-      security_group_api        => 'neutron'
+      security_group_api        => 'neutron',
+      neutron_region_name       => $region,
   }
 
 #  class {'openstack::compute':
