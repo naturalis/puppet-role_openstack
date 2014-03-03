@@ -116,7 +116,7 @@ class role_openstack::control(
       password      => $keystone_db_password,
       dbname        => 'keystone',
       allowed_hosts => '%',
-      charset       => 'latin',
+      charset       => 'latin1',
   }
 
   class { 'keystone':
