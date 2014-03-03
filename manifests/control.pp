@@ -327,7 +327,7 @@ class role_openstack::control(
   class { 'neutron::server':
       auth_host           => '127.0.0.1',
       auth_password       => $neutron_user_password,
-#      database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
+      database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
   }
   
   class { 'neutron::plugins::ovs':
