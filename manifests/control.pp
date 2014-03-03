@@ -535,7 +535,7 @@ class role_openstack::control(
     rabbit_virtual_host   => '/',
     rabbit_user           => 'openstack',
     rabbit_password       => $rabbit_password,
-    debug                 => true
+    debug                 => false,
   }
 
   class { 'neutron::server':
@@ -563,17 +563,17 @@ class role_openstack::control(
       shared_secret  => $neutron_shared_secret,
       auth_url       => 'http://127.0.0.1:35357/v2.0',
       auth_region    => $region,
-      debug          => true,
+      debug          => false,
   }
 
   class { 'neutron::agents::dhcp':
       use_namespaces => true,
-      debug          => true,
+      debug          => false,
   }
 
   class { 'neutron::agents::l3':
       use_namespaces => true,
-      debug          => true,
+      debug          => false,
   }
 
   class { 'neutron::agents::vpnaas': }
