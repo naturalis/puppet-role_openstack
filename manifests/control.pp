@@ -43,21 +43,17 @@ class role_openstack::control(
 
     file {'/etc/ceph/ceph.client.cinder.keyring':
       content => template('role_openstack/ceph.client.cinder.keyring.erb'),
-      owner   => 'cinder',
-      mode    => 0600,
+      mode    => 0644,
       require => [
         File['/etc/ceph'],
-        User['cinder'],
       ],
     }
 
     file {'/etc/ceph/ceph.client.glance.keyring':
       content => template('role_openstack/ceph.client.glance.keyring.erb'),
-      owner   => 'glance',
-      mode    => 0600,
+      mode    => 0644,
       require => [
         File['/etc/ceph'],
-        User['glance'],
       ],
     }
 
