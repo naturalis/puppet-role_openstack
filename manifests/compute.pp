@@ -102,7 +102,7 @@ class role_openstack::compute(
     glance_api_servers  => "${control_ip_address}:9292",
     rabbit_host         => $control_ip_address,
     rabbit_virtual_host => '/',
-    debug               => true,
+    debug               => false,
   }
 
   class { 'nova::compute':
