@@ -283,7 +283,7 @@ class role_openstack::control(
       neutron_admin_username    => 'neutron',
       neutron_admin_auth_url    => "http://127.0.0.1:35357/v2.0",
       security_group_api        => 'neutron',
-      region                    => $region,
+      neutron_region_name       => $region,
   }
 
   class { ['nova::scheduler','nova::objectstore','nova::cert','nova::consoleauth','nova::conductor']:
