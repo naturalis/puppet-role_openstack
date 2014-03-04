@@ -42,7 +42,7 @@ class role_openstack::control(
     class { 'role_openstack::ceph::package': }
 
     file {'/etc/ceph/ceph.client.cinder.keyring':
-      content => template('role_openstack/ceph.client.cinder.keyring.erg'),
+      content => template('role_openstack/ceph.client.cinder.keyring.erb'),
       owner   => 'cinder',
       group   => 'cinder',
       mode    => 0600,
@@ -54,7 +54,7 @@ class role_openstack::control(
     }
 
     file {'/etc/ceph/ceph.client.glance.keyring':
-      content => template('role_openstack/ceph.client.glance.keyring.erg'),
+      content => template('role_openstack/ceph.client.glance.keyring.erb'),
       owner   => 'glance',
       group   => 'glance',
       mode    => 0600,
