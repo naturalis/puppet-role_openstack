@@ -107,14 +107,14 @@ class role_openstack::compute(
 
   class { 'nova::compute':
     enabled                       => true,
-    vnc_enabled                   => true,
+    vnc_enabled                   => false,
     vncserver_proxyclient_address => $::ipaddress_eth0,
     vncproxy_host                 => $control_ip_address,
   }
 
   class { 'nova::compute::libvirt':
     libvirt_type      => $libvirt_type,
-    vncserver_listen  => $::ipaddress_eth0,
+#    vncserver_listen  => $::ipaddress_eth0,
   } 
 
   class { 'nova::compute::neutron': } 
@@ -122,7 +122,7 @@ class role_openstack::compute(
   class { 'neutron':
     enabled               => true,
     bind_host             => '0.0.0.0',
-    allow_overlapping_ips => true,
+    allow_overlapping_ips => false,
     rabbit_host           => $control_ip_address,
     rabbit_virtual_host   => '/',
     rabbit_user           => 'openstack',

@@ -291,7 +291,7 @@ class role_openstack::control(
 
   class { 'nova::vncproxy':
       host    => $::ipaddress_eth0,
-      enabled => true,
+      enabled => false,
   }
 
 
