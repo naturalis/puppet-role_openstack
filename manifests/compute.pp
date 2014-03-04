@@ -77,8 +77,8 @@ class role_openstack::compute(
 
   
   class {'openstack::repo': 
-    before => Exec['apt-get-update after repo addition'],
-  } 
+#    before => Exec['apt-get-update after repo addition'],
+  } ~>
 
   exec {'apt-get-update after repo addition':
     command => '/usr/bin/apt-get update',
