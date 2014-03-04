@@ -509,9 +509,13 @@ class role_openstack::control(
   class {'::cinder::volume': }
 
   class { 'cinder::volume::rbd':
-          rbd_pool        => 'volumes',
-          rbd_user        => 'cinder',
-          rbd_secret_uuid => $rbd_secret_uuid,
+    rbd_pool        => 'volumes',
+    rbd_user        => 'cinder',
+    rbd_secret_uuid => $rbd_secret_uuid,
+  }
+
+  class { 'cinder::glance': 
+    glance_api_servers => "${::ipaddress_eth0}:9292",
   }
 
 
@@ -610,4 +614,6 @@ class role_openstack::control(
   #  require => File['/etc/openstack-dashboard/local_settings.py'],
     #notify => [Service['apache2'],Service['memcached']],
   #}
+
+
 }
