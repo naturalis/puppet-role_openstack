@@ -48,7 +48,6 @@ class role_openstack::control(
       require => [
         File['/etc/ceph'],
         User['cinder'],
-        Group['cinder']
       ],
     }
 
@@ -59,7 +58,6 @@ class role_openstack::control(
       require => [
         File['/etc/ceph'],
         User['glance'],
-        Group['glance']
       ],
     }
 
