@@ -278,10 +278,10 @@ class role_openstack::control(
   class { 'nova::network::neutron':
       neutron_admin_password    => $neutron_user_password,
       neutron_auth_strategy     => 'keystone',
-      neutron_url               => "http://${::ipaddress_eth0}:9696",
+      neutron_url               => "http://127.0.0.1:9696",
       neutron_admin_tenant_name => 'services',
       neutron_admin_username    => 'neutron',
-      neutron_admin_auth_url    => "http://${::ipaddress_eth0}:35357/v2.0",
+      neutron_admin_auth_url    => "http://127.0.0.1:35357/v2.0",
       security_group_api        => 'neutron',
   }
 
