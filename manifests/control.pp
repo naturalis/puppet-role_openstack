@@ -18,8 +18,11 @@ class role_openstack::control(
   $swift_user_password,
 
 
+
   $lvm_volume_disks = [],
   $ceph_fsid        = 'false',
+  $ceph_cinder_key  = '',
+  $ceph_glance_key  = '',
   $rbd_secret_uuid  = 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
   $admin_email      = 'aut@naturalis.nl',
   $region           = 'Leiden'
@@ -37,6 +40,30 @@ class role_openstack::control(
     }
 
     class { 'role_openstack::ceph::package': }
+
+    file {'/etc/ceph/ceph.client.cinder.keyring':
+      content => template('role_openstack/ceph.client.cinder.keyring.erg'),
+      owner   => 'cinder',
+      group   => 'cinder',
+      mode    => 0600,
+      require => [
+        File['/etc/ceph'],
+        User['cinder'],
+        Group['cinder']
+      ],
+    }
+
+    file {'/etc/ceph/ceph.client.glance.keyring':
+      content => template('role_openstack/ceph.client.glance.keyring.erg'),
+      owner   => 'glance',
+      group   => 'glance',
+      mode    => 0600,
+      require => [
+        File['/etc/ceph'],
+        User['glance'],
+        Group['glance']
+      ],
+    }
 
   }
 
