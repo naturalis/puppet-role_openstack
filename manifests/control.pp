@@ -177,7 +177,7 @@ class role_openstack::control(
       user          => 'glance',
       password      => $glance_db_password,
       dbname        => 'glance',
-      allowed_hosts => '0.0.0.0',
+      allowed_hosts => '%',
       charset       => 'latin1',
   }
 
@@ -233,7 +233,7 @@ class role_openstack::control(
       user          => 'nova',
       password      => $nova_db_password,
       dbname        => 'nova',
-      allowed_hosts => '0.0.0.0',
+      allowed_hosts => '%',
       charset       => 'latin1',
   }
   

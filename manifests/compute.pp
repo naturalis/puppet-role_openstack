@@ -135,6 +135,7 @@ class role_openstack::compute(
       bridge_mappings  => undef,
       enable_tunneling => true,
       local_ip         => $::ipaddress_eth0,
+      firewall_driver  => false,
   }
 
   class { 'nova::network::neutron':
