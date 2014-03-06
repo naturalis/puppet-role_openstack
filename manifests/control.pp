@@ -107,6 +107,10 @@ class role_openstack::control(
     fs_type => 'ext4',
   }
 
+  file {'/var/lib/glance':
+    ensure => directory,
+  }
+
   mount {'/var/lib/glance':
     ensure    => mounted,
     atboot    => true,
@@ -114,11 +118,14 @@ class role_openstack::control(
     fstype    => 'ext4',
     remounts  => true,
     options   => 'defaults',
-    require   => Filesystem['/dev/vg_os/glance_lib_volume'],
+    require   => [
+      Filesystem['/dev/vg_os/glance_lib_volume'],
+      File['/var/lib/glance']
+    ],
     before    => [
       Exec['apt-get-update after repo addition'],
       Package['glance'],
-      ],
+    ],
   }
   
   #class {'openstack::repo': 

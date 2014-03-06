@@ -93,6 +93,10 @@ class role_openstack::compute(
     fs_type => 'ext4',
   }
 
+  file {'/var/lib/nova':
+    ensure => directory,
+  }
+
   mount {'/var/lib/nova':
     ensure    => mounted,
     atboot    => true,
@@ -100,7 +104,10 @@ class role_openstack::compute(
     fstype    => 'ext4',
     options   => 'defaults',
     remounts  => true,
-    require   => Filesystem['/dev/instance-volumes/nova_lib_volume'],
+    require   => [
+      Filesystem['/dev/instance-volumes/nova_lib_volume'],
+      File['/var/lib/nova']
+    ],
     before    => [
       Exec['apt-get-update after repo addition'],
       Package['nova'],
