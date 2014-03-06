@@ -28,11 +28,17 @@ class role_openstack::compute(
     file {'/etc/ceph':
       ensure => directory,
     }
+    
+    class {'sshkey_distribute':
+      export_tag => $openstack_cluster_id,
+    }
+
+    Exec <<| tag == $openstack_cluster_id |>> 
 
     Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
-
+    
     class { 'role_openstack::ceph::package': }
     
     file {'/tmp/secret.xml':
