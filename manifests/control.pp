@@ -111,6 +111,7 @@ class role_openstack::control(
     device    => '/dev/vg_os/glance_lib_volume',
     fstype    => 'ext4',
     remounts  => true,
+    options   => 'defaults',
     require   => Filesystem['/dev/vg_os/glance_lib_volume'],
     before    => Exec['apt-get-update after repo addition'],
   }
@@ -220,7 +221,7 @@ class role_openstack::control(
     help_url                => 'http://docs.openstack.org',
     local_settings_template => 'role_openstack/local_settings.py.erb',
     neutron_options         => {
-      'enable_lb'             => false,
+      'enable_lb'             => true,
       'enable_firewall'       => false,
       'enable_quotas'         => true,
       'enable_security_group' => true,
@@ -508,6 +509,10 @@ class role_openstack::control(
       debug          => false,
   }
 
+  class { 'neutron::agents::lbaas':
+      use_namespaces => true,
+      debug          => false,
+  }
 ########################################
   
   #end of neutron part

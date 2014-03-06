@@ -8,7 +8,7 @@ class role_openstack::compute(
   $control_ip_address,
   $neutron_user_password,
 
-  $image_cache_size_gb  = 100,
+  $image_cache_size_gb  = 250,
 
   $raid_disks           = [],
   $raid_dev_name        = '/dev/md2',
@@ -96,6 +96,7 @@ class role_openstack::compute(
     atboot    => true,
     device    => '/dev/instance-volumes/nova_lib_volume',
     fstype    => 'ext4',
+    options   => 'defaults',
     remounts  => true,
     require   => Filesystem['/dev/instance-volumes/nova_lib_volume'],
     before    => Exec['apt-get-update after repo addition'],
