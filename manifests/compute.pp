@@ -88,9 +88,10 @@ class role_openstack::compute(
     size          => "${image_cache_size_gb}G",
   }
 
-  filesystem  {"/dev/instance-volumes/nova_lib_volume":
+  filesystem  {'/dev/instance-volumes/nova_lib_volume':
     ensure  => present,
     fs_type => 'ext4',
+    require => Logical_volume['nova_lib_volume'],
   }
 
   file {'/var/lib/nova':
