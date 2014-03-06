@@ -113,7 +113,10 @@ class role_openstack::control(
     remounts  => true,
     options   => 'defaults',
     require   => Filesystem['/dev/vg_os/glance_lib_volume'],
-    before    => Exec['apt-get-update after repo addition'],
+    before    => [
+      Exec['apt-get-update after repo addition'],
+      Package['glance'],
+      ],
   }
   
   #class {'openstack::repo': 

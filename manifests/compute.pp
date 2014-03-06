@@ -99,7 +99,10 @@ class role_openstack::compute(
     options   => 'defaults',
     remounts  => true,
     require   => Filesystem['/dev/instance-volumes/nova_lib_volume'],
-    before    => Exec['apt-get-update after repo addition'],
+    before    => [
+      Exec['apt-get-update after repo addition'],
+      Package['nova'],
+      ],
   }
 
 
