@@ -110,7 +110,7 @@ class role_openstack::compute(
     ],
     before    => [
       Exec['apt-get-update after repo addition'],
-      Package['nova'],
+      Package['nova-common'],
       ],
   }
 
