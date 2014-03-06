@@ -93,6 +93,27 @@ class role_openstack::control(
       before            => Class['openstack::repo'],
     }
   }
+
+  logical_volume {'glance_lib_volume':
+    ensure        => present,
+    volume_group  => 'vg_os',
+    size          => '55G',
+  }
+
+  filesystem  {"/dev/vg_os/glance_lib_volume":
+    ensure  => present,
+    fs_type => 'ext4',
+  }
+
+  mount {'/var/lib/glance':
+    ensure    => mounted,
+    atboot    => true,
+    device    => '/dev/vg_os/glance_lib_volume',
+    fstype    => 'ext4',
+    remounts  => true,
+    require   => Filesystem['/dev/vg_os/glance_lib_volume'],
+    before    => Exec['apt-get-update after repo addition'],
+  }
   
   #class {'openstack::repo': 
 # #   before => Exec['apt-get-update after repo addition']

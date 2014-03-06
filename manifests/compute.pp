@@ -80,13 +80,13 @@ class role_openstack::compute(
   #  before => Class['openstack::repo'],
   }
   
-  logical_volume {'nova-lib-volume':
+  logical_volume {'nova_lib_volume':
     ensure        => present,
     volume_group  => 'instance-volumes',
     size          => "${image_cache_size_gb}G",
   }
 
-  filesystem  {"/dev/instance-volumes/nova-lib-volume":
+  filesystem  {"/dev/instance-volumes/nova_lib_volume":
     ensure  => present,
     fs_type => 'ext4',
   }
@@ -94,10 +94,10 @@ class role_openstack::compute(
   mount {'/var/lib/nova':
     ensure    => mounted,
     atboot    => true,
-    device    => '/dev/instance-volumes/nova-lib-volume',
+    device    => '/dev/instance-volumes/nova_lib_volume',
     fstype    => 'ext4',
     remounts  => true,
-    require   => Filesystem['/dev/instance-volumes/nova-lib-volume'],
+    require   => Filesystem['/dev/instance-volumes/nova_lib_volume'],
     before    => Exec['apt-get-update after repo addition'],
   }
 
