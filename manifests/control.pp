@@ -17,15 +17,17 @@ class role_openstack::control(
   $cinder_user_password,
   $swift_user_password,
 
+  $public_address       = 'openstack.naturalis.nl',
+  $image_cache_size_gb  = 100,
 
 
-  $lvm_volume_disks = [],
-  $ceph_fsid        = 'false',
-  $ceph_cinder_key  = '',
-  $ceph_glance_key  = '',
-  $rbd_secret_uuid  = 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
-  $admin_email      = 'aut@naturalis.nl',
-  $region           = 'Leiden'
+  $lvm_volume_disks     = [],
+  $ceph_fsid            = 'false',
+  $ceph_cinder_key      = '',
+  $ceph_glance_key      = '',
+  $rbd_secret_uuid      = 'bdd68f4b-fdab-4bdd-8939-275bc9ac3472',
+  $admin_email          = 'aut@naturalis.nl',
+  $region               = 'Leiden'
 
 ){
   
@@ -92,13 +94,25 @@ class role_openstack::control(
     }
   }
   
-  class {'openstack::repo': 
-#    before => Exec['apt-get-update after repo addition']
-  } ~>
+  #class {'openstack::repo': 
+# #   before => Exec['apt-get-update after repo addition']
+  #} ~>
 
+  #exec {'apt-get-update after repo addition':
+  #  command => '/usr/bin/apt-get update',
+  #    before => Class['openstack::controller'],
+  #}
+
+  apt::source { 'ubuntu-cloud-archive':
+    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+    release           => "precise-updates/havana",
+    repos             => 'main',
+    required_packages => 'ubuntu-cloud-keyring',
+  } ~>
+  
   exec {'apt-get-update after repo addition':
-    command => '/usr/bin/apt-get update',
-#    before => Class['openstack::controller'],
+    command       => '/usr/bin/apt-get update',
+    refreshonly  => true,
   }
 
 
@@ -157,7 +171,7 @@ class role_openstack::control(
 
     # Setup the Keystone Identity Endpoint
   class { 'keystone::endpoint':
-    public_address   => $::ipaddress_eth0,
+    public_address   => $public_address,
     public_protocol  => 'http',
     admin_address    => $::ipaddress_eth0,
     internal_address => $::ipaddress_eth0,
@@ -175,13 +189,25 @@ class role_openstack::control(
   }
 
   class { 'horizon':
-    cache_server_ip       => '127.0.0.1',
-    cache_server_port     => '11211',
-    secret_key            => $secret_key,
-    keystone_url          => 'http://127.0.0.1:5000/v2.0',
-    django_debug          => 'False',
-    api_result_limit      => 1000,
+    fqdn                    => [$fqdn,$public_address],
+    cache_server_ip         => '127.0.0.1',
+    cache_server_port       => '11211',
+    secret_key              => $secret_key,
+    keystone_url            => 'http://127.0.0.1:5000/v2.0',
+    django_debug            => 'False',
+    api_result_limit        => 1000,
+    help_url                => 'http://docs.openstack.org',
+    local_settings_template => 'role_openstack/local_settings.py.erb',
+    neutron_options         => {
+      'enable_lb'             => false,
+      'enable_firewall'       => false,
+      'enable_quotas'         => true,
+      'enable_security_group' => true,
+      'enable_vpn'            => false,
+      'profile_support'       => 'None'
+    },
   }
+
 
   ########################################
 
@@ -202,7 +228,7 @@ class role_openstack::control(
 
   class { 'glance::keystone::auth':
         password         => $glance_user_password,
-        public_address   => $::ipaddress_eth0,
+        public_address   => $public_address,
         public_protocol  => 'http',
         admin_address    => $::ipaddress_eth0,
         internal_address => $::ipaddress_eth0,
@@ -258,7 +284,7 @@ class role_openstack::control(
   
   class { 'nova::keystone::auth':
         password         => $nova_user_password,
-        public_address   => $::ipaddress_eth0,
+        public_address   => $public_address,
         public_protocol  => 'http',
         admin_address    => $::ipaddress_eth0,
         internal_address => $::ipaddress_eth0,
@@ -314,8 +340,168 @@ class role_openstack::control(
       enabled => true,
   }
 
-
   ########################################
+
+  #########     CINDER    ################
+
+  class { 'cinder::db::mysql':
+        user          => 'cinder',
+        password      => $cinder_db_password,
+        dbname        => 'cinder',
+        allowed_hosts => '%',
+        charset       => 'latin1',
+        before        => [
+          Class[cinder::keystone::auth],
+          Class[cinder],
+          Class[cinder::api],
+          Class[cinder::scheduler],
+          Class[cinder::volume],
+          Class[cinder::volume::rbd]
+        ],
+  }
+
+  class { 'cinder::keystone::auth':
+        password         => $cinder_user_password,
+        public_address   => $public_address,
+        admin_address    => $::ipaddress_eth0,
+        public_protocol  => 'http',
+        internal_address => $::ipaddress_eth0,
+        region           => $region,
+  }
+
+
+  class {'cinder':
+    sql_connection      => "mysql://cinder:${cinder_db_password}@127.0.0.1/cinder?charset=latin1",
+    rabbit_userid       => 'openstack',
+    rabbit_password     => $rabbit_password,
+    rabbit_host         => '127.0.0.1',
+    rabbit_virtual_host => '/',
+    debug               => false,
+  }
+
+  class {'cinder::api':
+    keystone_password       => $cinder_user_password,
+    keystone_user           => 'cinder',
+    keystone_auth_host      => '127.0.0.1',
+    keystone_auth_protocol  => 'http',
+    bind_host               => '0.0.0.0',
+    enabled                 => true,
+  }
+
+  class {'cinder::scheduler':
+    scheduler_driver       => 'cinder.scheduler.simple.SimpleScheduler',
+  }
+
+  class {'::cinder::volume': }
+
+  class { 'cinder::volume::rbd':
+    rbd_pool        => 'volumes',
+    rbd_user        => 'cinder',
+    rbd_secret_uuid => $rbd_secret_uuid,
+  }
+
+  class { 'cinder::glance': 
+    glance_api_servers => "${::ipaddress_eth0}:9292",
+  }
+
+
+ ########################################
+
+ ##########    NEUTRON    ###############
+ 
+  class { 'neutron::db::mysql':
+        user          => 'neutron',
+        password      => $neutron_db_password,
+        dbname        => 'neutron',
+        allowed_hosts => '%',
+        charset       => 'latin1',
+        before        => [
+          Class[neutron],
+          Class[neutron::server],
+          Class[neutron::plugins::ovs],
+          Class[neutron::agents::ovs],
+          Class[neutron::agents::metadata],
+          Class[neutron::agents::dhcp],
+          Class[neutron::agents::l3],
+          Class[neutron::keystone::auth]
+        ],
+  }
+
+  class { 'neutron::keystone::auth':
+        password         => $neutron_user_password,
+        public_address   => $public_address,
+        public_protocol  => 'http',
+        admin_address    => $::ipaddress_eth0,
+        internal_address => $::ipaddress_eth0,
+        region           => $region,
+  }
+
+
+  class { 'neutron':
+    enabled               => true,
+    core_plugin           => 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2',
+    allow_overlapping_ips => true,
+    rabbit_host           => '127.0.0.1',
+    rabbit_virtual_host   => '/',
+    rabbit_user           => 'openstack',
+    rabbit_password       => $rabbit_password,
+    debug                 => false,
+  }
+
+  class { 'neutron::server':
+      auth_host           => '127.0.0.1',
+      auth_password       => $neutron_user_password,
+      database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
+  }
+  
+  class { 'neutron::plugins::ovs':
+      sql_connection      => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
+      sql_idle_timeout    => '3600',
+      tenant_network_type => 'gre',
+  }
+
+  class { 'neutron::agents::ovs':
+      enable_tunneling => true,
+      bridge_uplinks   => ['br-ex:eth1'],
+      bridge_mappings  => ['default:br-ex'],
+      local_ip         => $::ipaddress_eth0,
+      firewall_driver  => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+  }
+
+  class { 'neutron::agents::metadata':
+      auth_password  => $neutron_user_password,
+      shared_secret  => $neutron_shared_secret,
+      auth_url       => 'http://127.0.0.1:35357/v2.0',
+#      auth_url       => 'http://127.0.0.1:5000/v2.0',
+      auth_region    => $region,
+      debug          => true,
+  }
+
+  class { 'neutron::agents::dhcp':
+      use_namespaces => true,
+      debug          => false,
+  }
+
+  class { 'neutron::agents::l3':
+      use_namespaces => true,
+      debug          => false,
+  }
+
+########################################
+  
+  #end of neutron part
+
+  #ini_setting { 'set_offline_compression':
+  #  path    => '/etc/openstack-dashboard/local_settings.py',
+  #  section => '',
+  #  setting => 'COMPRESS_OFFLINE',
+  #  value   => 'True',
+  #  ensure  => present,
+  #  require => File['/etc/openstack-dashboard/local_settings.py'],
+    #notify => [Service['apache2'],Service['memcached']],
+  #}
+
+    ########################################
 
 #   class {'openstack::controller':
 #   # Required Network
@@ -458,162 +644,6 @@ class role_openstack::control(
 
 #   } 
 
-  #cinder part
-  class { 'cinder::db::mysql':
-        user          => 'cinder',
-        password      => $cinder_db_password,
-        dbname        => 'cinder',
-        allowed_hosts => '%',
-        charset       => 'latin1',
-        before        => [
-          Class[cinder::keystone::auth],
-          Class[cinder],
-          Class[cinder::api],
-          Class[cinder::scheduler],
-          Class[cinder::volume],
-          Class[cinder::volume::rbd]
-        ],
-  }
-
-  class { 'cinder::keystone::auth':
-        password         => $cinder_user_password,
-        public_address   => $::ipaddress_eth0,
-        public_protocol  => 'http',
-        internal_address => $::ipaddress_eth0,
-        region           => $region,
-  }
-
-
-  class {'cinder':
-    sql_connection      => "mysql://cinder:${cinder_db_password}@127.0.0.1/cinder?charset=latin1",
-    rabbit_userid       => 'openstack',
-    rabbit_password     => $rabbit_password,
-    rabbit_host         => '127.0.0.1',
-    rabbit_virtual_host => '/',
-    debug               => false,
-  }
-
-  class {'cinder::api':
-    keystone_password       => $cinder_user_password,
-    keystone_user           => 'cinder',
-    keystone_auth_host      => '127.0.0.1',
-    keystone_auth_protocol  => 'http',
-    bind_host               => '0.0.0.0',
-    enabled                 => true,
-  }
-
-  class {'cinder::scheduler':
-    scheduler_driver       => 'cinder.scheduler.simple.SimpleScheduler',
-  }
-
-  class {'::cinder::volume': }
-
-  class { 'cinder::volume::rbd':
-    rbd_pool        => 'volumes',
-    rbd_user        => 'cinder',
-    rbd_secret_uuid => $rbd_secret_uuid,
-  }
-
-  class { 'cinder::glance': 
-    glance_api_servers => "${::ipaddress_eth0}:9292",
-  }
-
-
-
- 
-  #neutron part.
-  class { 'neutron::db::mysql':
-        user          => 'neutron',
-        password      => $neutron_db_password,
-        dbname        => 'neutron',
-        allowed_hosts => '%',
-        charset       => 'latin1',
-        before        => [
-          Class[neutron],
-          Class[neutron::server],
-          Class[neutron::plugins::ovs],
-          Class[neutron::agents::ovs],
-          Class[neutron::agents::metadata],
-          Class[neutron::agents::dhcp],
-          Class[neutron::agents::l3],
-          Class[neutron::keystone::auth],
-          Class[neutron::agents::vpnaas]
-        ],
-  }
-
-  class { 'neutron::keystone::auth':
-        password         => $neutron_user_password,
-        public_address   => $::ipaddress_eth0,
-        public_protocol  => 'http',
-        admin_address    => $::ipaddress_eth0,
-        internal_address => $::ipaddress_eth0,
-        region           => $region,
-  }
-
-
-  class { 'neutron':
-    enabled               => true,
-    core_plugin           => 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2',
-    allow_overlapping_ips => true,
-    rabbit_host           => '127.0.0.1',
-    rabbit_virtual_host   => '/',
-    rabbit_user           => 'openstack',
-    rabbit_password       => $rabbit_password,
-    debug                 => false,
-  }
-
-  class { 'neutron::server':
-      auth_host           => '127.0.0.1',
-      auth_password       => $neutron_user_password,
-      database_connection => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
-  }
-  
-  class { 'neutron::plugins::ovs':
-      sql_connection      => "mysql://neutron:${neutron_db_password}@127.0.0.1/neutron?charset=latin1",
-      sql_idle_timeout    => '3600',
-      tenant_network_type => 'gre',
-  }
-
-  class { 'neutron::agents::ovs':
-      enable_tunneling => true,
-      bridge_uplinks   => ['br-ex:eth1'],
-      bridge_mappings  => ['default:br-ex'],
-      local_ip         => $::ipaddress_eth0,
-      firewall_driver  => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
-  }
-
-  class { 'neutron::agents::metadata':
-      auth_password  => $neutron_user_password,
-      shared_secret  => $neutron_shared_secret,
-      auth_url       => 'http://127.0.0.1:35357/v2.0',
-#      auth_url       => 'http://127.0.0.1:5000/v2.0',
-      auth_region    => $region,
-      debug          => true,
-  }
-
-  class { 'neutron::agents::dhcp':
-      use_namespaces => true,
-      debug          => false,
-  }
-
-  class { 'neutron::agents::l3':
-      use_namespaces => true,
-      debug          => false,
-  }
-
-  class { 'neutron::agents::vpnaas': }
-  
-  #end of neutron part
-
-  #ini_setting { 'set_offline_compression':
-  #  path    => '/etc/openstack-dashboard/local_settings.py',
-  #  section => '',
-  #  setting => 'COMPRESS_OFFLINE',
-  #  value   => 'True',
-  #  ensure  => present,
-  #  require => File['/etc/openstack-dashboard/local_settings.py'],
-    #notify => [Service['apache2'],Service['memcached']],
-  #}
 
 
 }

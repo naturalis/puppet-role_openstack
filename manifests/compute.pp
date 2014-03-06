@@ -8,16 +8,19 @@ class role_openstack::compute(
   $control_ip_address,
   $neutron_user_password,
 
-  $raid_disks     = [],
-  $raid_dev_name  = '/dev/md2',
-  $libvirt_type   = 'kvm',
-  $volume_backend = 'lvm',
-  $ceph_fsid      = 'false',
-  $region         = 'Leiden',
+  $image_cache_size_gb  = 100,
+
+  $raid_disks           = [],
+  $raid_dev_name        = '/dev/md2',
+  $libvirt_type         = 'kvm',
+  $volume_backend       = 'lvm',
+  $ceph_fsid            = 'false',
+  $region               = 'Leiden',
   
   
 
 ){
+  
   include stdlib
   if $ceph_fsid != 'false' {
     file {'/etc/ceph':
@@ -36,14 +39,16 @@ class role_openstack::compute(
     } ~>
 
     exec {'define secret':
-      command => '/usr/bin/virsh secret-define --file /tmp/secret.xml',
-      require =>  Class[nova::compute::libvirt],
+      command     => '/usr/bin/virsh secret-define --file /tmp/secret.xml',
+      require     =>  Class[nova::compute::libvirt],
+      refreshonly => true,
     } ~>
 
     exec {'set secret value':
-      command => "/usr/bin/virsh secret-set-value --secret ${cinder_rbd_secret_uuid} --base64 ${ceph_cinder_key}",
-     # require => [File['/etc/ceph/ceph.client.cinder.keyring'],Exec['define secret']],
-      notify => Service['nova-compute'],
+      command     => "/usr/bin/virsh secret-set-value --secret ${cinder_rbd_secret_uuid} --base64 ${ceph_cinder_key}",
+     # require    => [File['/etc/ceph/ceph.client.cinder.keyring'],Exec['define secret']],
+      notify      => Service['nova-compute'],
+      refreshonly => true,
     }
 
 
@@ -72,18 +77,47 @@ class role_openstack::compute(
   volume_group {'instance-volumes':
     ensure => present,
     physical_volumes => $raid_dev_name,
-    before => Class['openstack::repo'],
+  #  before => Class['openstack::repo'],
+  }
+  
+  logical_volume {'nova-lib-volume':
+    ensure        => present,
+    volume_group  => 'instance-volumes',
+    size          => "${image_cache_size_gb}G",
   }
 
-  
-  class {'openstack::repo': 
-#    before => Exec['apt-get-update after repo addition'],
-  } ~>
+  filesystem  {"/dev/instance-volumes/nova-lib-volume":
+    ensure  => present,
+    fs_type => 'ext4',
+  }
 
+  mount {'/var/lib/nova':
+    ensure    => mounted,
+    atboot    => true,
+    device    => '/dev/instance-volumes/nova-lib-volume',
+    fstype    => 'ext4',
+    remounts  => true,
+    require   => Filesystem['/dev/instance-volumes/nova-lib-volume'],
+    before    => Exec['apt-get-update after repo addition'],
+  }
+
+
+  
+  #class {'openstack::repo': 
+  #  before => Exec['apt-get-update after repo addition'],
+  #} ~>
+  apt::source { 'ubuntu-cloud-archive':
+    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+    release           => "precise-updates/havana",
+    repos             => 'main',
+    required_packages => 'ubuntu-cloud-keyring',
+  } ~>
+  
   exec {'apt-get-update after repo addition':
-    command => '/usr/bin/apt-get update',
-    unless => '/usr/bin/test -f /etc/apt/sources.list.d/ubuntu-cloud-archive.list',
-    before => [
+    command     => '/usr/bin/apt-get update',
+    unless      => '/usr/bin/test -f /etc/apt/sources.list.d/ubuntu-cloud-archive.list',
+    refreshonly => true,
+    before      => [
       Class[nova],
       Class[nova::compute],
       Class[nova::compute::libvirt],
@@ -151,8 +185,31 @@ class role_openstack::compute(
       neutron_region_name       => $region,
   }
 
+
+  ini_setting { 'set_libvirt_images_type':
+    path              => '/etc/nova/nova.conf',
+    section           => 'DEFAULT',
+    key_val_separator => '=',    
+    setting           => 'libvirt_images_type',
+    value             => 'lvm',
+    ensure            => present,
+    require           => File['/etc/nova/nova.conf'],
+    notify            => Service['nova-compute'],
+  }
+
+  ini_setting { 'set_libvirt_images_volume_group':
+    path              => '/etc/nova/nova.conf',
+    key_val_separator => '=',    
+    section           => 'DEFAULT',
+    setting           => 'libvirt_images_volume_group',
+    value             => 'instance-volumes',
+    ensure            => present,
+    require           => File['/etc/nova/nova.conf'],
+    notify            => Service['nova-compute'],
+  }
+
 #  class {'openstack::compute':
-#  	 # Required Network
+#    # Required Network
 #    internal_address => $::ipaddress_eth0,
 #  # Required Nova
 #    nova_user_password => $nova_user_password,
@@ -229,29 +286,5 @@ class role_openstack::compute(
 #    enabled => true,
 #  }
 
-
-  
-  
-  ini_setting { 'set_libvirt_images_type':
-    path              => '/etc/nova/nova.conf',
-    section           => 'DEFAULT',
-    key_val_separator => '=',    
-    setting           => 'libvirt_images_type',
-    value             => 'lvm',
-    ensure            => present,
-    require           => File['/etc/nova/nova.conf'],
-    notify            => Service['nova-compute'],
-  }
-
-  ini_setting { 'set_libvirt_images_volume_group':
-    path              => '/etc/nova/nova.conf',
-    key_val_separator => '=',    
-    section           => 'DEFAULT',
-    setting           => 'libvirt_images_volume_group',
-    value             => 'instance-volumes',
-    ensure            => present,
-    require           => File['/etc/nova/nova.conf'],
-    notify            => Service['nova-compute'],
-  }
 
 }
