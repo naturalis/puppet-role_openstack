@@ -8,6 +8,8 @@ class role_openstack::compute(
   $control_ip_address,
   $neutron_user_password,
 
+  $openstack_cluster_id,
+
   $image_cache_size_gb  = 250,
 
   $raid_disks           = [],

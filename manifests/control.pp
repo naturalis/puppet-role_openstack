@@ -17,6 +17,8 @@ class role_openstack::control(
   $cinder_user_password,
   $swift_user_password,
 
+  $openstack_cluster_id,
+
   $public_address       = 'openstack.naturalis.nl',
   $image_cache_size_gb  = 100,
 
