@@ -87,7 +87,7 @@ class role_openstack::compute(
   exec { "nova-copy-host-pup-key":
     command => "/bin/cp /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa && /bin/chown nova:nova /var/lib/nova/.ssh/id_rsa",
     require => File["nova-ssh-dir"],
-    unless  => 'diff /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa',
+    unless  => '/usr/bin/diff /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa',
   }
 
   if $ceph_fsid != 'false' {
