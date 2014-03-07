@@ -39,7 +39,7 @@ class role_openstack::compute::sshkey_distribute(
 
   exec {"${::fqdn}-fact-pub-sshkey":
     command => '/bin/echo nova_pub_sshkey=$(/bin/cat /var/lib/nova/.ssh/id_rsa.pub) > /etc/facter/facts.d/nova_pub_sshkey.txt',
-    unless => "/bin /cat /etc/facter/facts.d/nova_pub_sshkey.txt | grep ${::nova_pub_sshkey}",
+    unless => "/bin/cat /etc/facter/facts.d/nova_pub_sshkey.txt | grep ${::nova_pub_sshkey}",
     require => Exec["${::fqdn}-generate-sshkey"],
   }
 
