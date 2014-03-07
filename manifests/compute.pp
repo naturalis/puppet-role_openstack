@@ -44,9 +44,9 @@ class role_openstack::compute(
 
   @@ssh_authorized_key { "${::fqdn}_rsa":
     ensure   => present,
-    key      => $::sshrsakey,
+    key      => $::sshrsakey, 
     type     => ssh-rsa,
-    user     => 'root',
+    user     => 'nova',
     tag      => $openstack_cluster_id,
   }
 
@@ -56,6 +56,25 @@ class role_openstack::compute(
 
   Ssh_authorized_key <<| tag == $openstack_cluster_id |>> {
     ensure => present,
+  }
+
+  file { "nova-ssh-dir":
+    path    => "/var/lib/nova/.ssh",
+    ensure  => "directory",
+    require => File['/var/lib/nova'],
+    mode    => 0770,
+    owner   => 'nova',
+  }
+
+  file { "nova-strickhostcheckingdisable":
+    path    => '/var/lib/nova/.ssh/config',
+    content => template('role_openstack/ssh_config.erb'),
+    require => File["nova-ssh-dir"],
+  }
+
+  exec { "nova-copy-host-pup-key":
+    command => "/bin/cp /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa && /bin/chown nova:nova /var/lib/nova/.ssh/id_rsa",
+    require => File["nova-ssh-dir"]
   }
 
   if $ceph_fsid != 'false' {
