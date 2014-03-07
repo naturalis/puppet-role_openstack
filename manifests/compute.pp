@@ -66,7 +66,7 @@ class role_openstack::compute(
 
   exec { 'set nova shell':
     command => '/usr/sbin/usermod -s /bin/bash nova',
-    onlyif  => '/bin/cat /etc/passwd | grep nova | grep bash',
+    unless  => '/bin/cat /etc/passwd | grep nova | grep bash',
     require => User['nova'],
   }
 
@@ -86,7 +86,8 @@ class role_openstack::compute(
 
   exec { "nova-copy-host-pup-key":
     command => "/bin/cp /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa && /bin/chown nova:nova /var/lib/nova/.ssh/id_rsa",
-    require => File["nova-ssh-dir"]
+    require => File["nova-ssh-dir"],
+
   }
 
   if $ceph_fsid != 'false' {
