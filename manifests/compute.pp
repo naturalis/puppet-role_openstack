@@ -46,7 +46,7 @@ class role_openstack::compute(
     ensure   => present,
     key      => $::sshrsakey,
     type     => ssh-rsa,
-    user     => 'nova',
+    user     => 'root',
     tag      => $openstack_cluster_id,
   }
 
