@@ -41,7 +41,20 @@ class role_openstack::compute(
     key => $::sshrsakey,
     tag => $openstack_cluster_id,
   }
+
+  @@ssh_authorized_key { "${::fqdn}_rsa":
+    ensure   => present,
+    key      => $::sshrsakey,
+    type     => ssh-rsa,
+    user     => 'nova',
+    tag      => $openstack_cluster_id,
+  }
+
   Sshkey <<| tag == $openstack_cluster_id |>> {
+    ensure => present,
+  }
+
+  Ssh_authorized_key <<| tag == $openstack_cluster_id |>> {
     ensure => present,
   }
 
