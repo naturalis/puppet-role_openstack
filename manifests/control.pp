@@ -376,7 +376,6 @@ class role_openstack::control(
 
   class { 'nova::spicehtml5proxy':
     enabled        => true,
-    manage_service => true,
     host           => '0.0.0.0',
     port           => '6082',
     ensure_package => 'present',
