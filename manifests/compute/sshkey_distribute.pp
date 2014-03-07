@@ -14,10 +14,16 @@ class role_openstack::compute::sshkey_distribute(
     require => File["${fqdn}-facter-base-dir"]
   }
 
+  file { "${fqdn}-ssh-dir":
+    path    => "/var/lib/nova/.ssh",
+    ensure  => "directory",
+    require => File['/var/lib/nova'],
+  }
+
   exec {"${::fqdn}-generate-sshkey":
     command => "/bin/su -s '/bin/bash' -c '/usr/bin/ssh-keygen -b 2048 -t rsa -f /var/lib/nova/.ssh/id_rsa -q -N \"\"' nova",
     creates => '/var/lib/nova/.ssh/id_rsa.pub',
-    require => File['/var/lib/nova'],
+    require => File["${fqdn}-ssh-dir"],
   }
 
   
@@ -33,7 +39,7 @@ class role_openstack::compute::sshkey_distribute(
       command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/authorized_keys",
       #creates => '/var/lib/nova/.ssh/authorized_keys',
       unless  => "/bin/cat /var/lib/nova/.ssh/authorized_keys | /bin/grep '${::nova_pub_sshkey}'", 
-      require => File['/var/lib/nova'],
+      require => File["${fqdn}-ssh-dir"],
       tag     => $export_tag,
     }
 
@@ -41,7 +47,7 @@ class role_openstack::compute::sshkey_distribute(
       command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/known-hosts",
       #creates => '/var/lib/nova/.ssh/authorized_keys',
       unless  => "/bin/cat /var/lib/nova/.ssh/known-hosts | /bin/grep '${::nova_pub_sshkey}'", 
-      require => File['/var/lib/nova'],
+      require => File["${fqdn}-ssh-dir"],
       tag     => $export_tag,
     }
   }
