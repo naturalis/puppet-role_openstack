@@ -9,7 +9,7 @@ class role_openstack::compute::sshkey_distribute(
   }
 
   augeas { "ssh_stricthostkeychecking":
-    context => "/files/etc/ssh/sshd_config",
+    context => "/files/etc/ssh/ssh_config",
     changes => [
         "set StrictHostKeyChecking 'no'",
       ],
