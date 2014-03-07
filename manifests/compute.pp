@@ -28,21 +28,21 @@ class role_openstack::compute(
   $ipaddresses = ipaddresses()
   $host_aliases = flatten([ $::fqdn, $::hostname, $ipaddresses ])
 
-  @@sshkey { "${::fqdn}_dsa":
+  @@sshkey { "${::fqdn}_dsa_${::sshrsakey}":
     host_aliases => $host_aliases,
     type => dsa,
     key => $::sshdsakey,
     tag => $openstack_cluster_id,
   }
   
-  @@sshkey { "${::fqdn}_rsa":
+  @@sshkey { "${::fqdn}_rsa_${::sshrsakey}":
     host_aliases => $host_aliases,
     type => rsa,
     key => $::sshrsakey,
     tag => $openstack_cluster_id,
   }
 
-  @@ssh_authorized_key { "${::fqdn}_rsa":
+  @@ssh_authorized_key { "${::fqdn}_rsa_${::sshrsakey}":
     ensure   => present,
     key      => $::sshrsakey, 
     type     => ssh-rsa,
@@ -78,10 +78,16 @@ class role_openstack::compute(
     owner   => 'nova',
   }
 
-  file { "nova-strickhostcheckingdisable":
-    path    => '/var/lib/nova/.ssh/config',
-    content => template('role_openstack/ssh_config.erb'),
-    require => File["nova-ssh-dir"],
+  #file { "nova-strickhostcheckingdisable":
+  #  path    => '/var/lib/nova/.ssh/config',
+  #  content => template('role_openstack/ssh_config.erb'),
+  #  require => File["nova-ssh-dir"],
+  #}
+  file {"link to known hosts":
+    ensure => link,
+    path   => '/var/lib/nova/.ssh/known_hosts',
+    target => '/etc/ssh/ssh_known_hosts',
+    rquire => File['nova-ssh-dir'],
   }
 
   exec { "nova-copy-host-pup-key":
@@ -239,7 +245,14 @@ class role_openstack::compute(
 #    vncserver_listen  => '0.0.0.0',
     vncserver_listen  => $::ipaddress_eth0,
 #    migration_support => true,
-  } 
+  }
+  
+  class {'nova::compute::spice':
+    agent_enabled               => true,
+    server_listen               => $ipaddress_eth0,
+    server_proxyclient_address  => $::ipaddress_eth0,
+    proxy_host                  => $control_ip_address,
+  }
 
   class { 'nova::compute::neutron': 
     libvirt_vif_driver => 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',

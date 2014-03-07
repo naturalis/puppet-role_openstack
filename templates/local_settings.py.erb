@@ -4,6 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from openstack_dashboard import exceptions
 
+
+SITE_BRANDING = 'Naturalis OpenStack Dashboard'
+
 DEBUG = <%= @django_debug.to_s.capitalize %>
 TEMPLATE_DEBUG = DEBUG
 
@@ -63,7 +66,7 @@ HORIZON_CONFIG = {
         'fade_duration': 1500,
         'types': ['alert-success', 'alert-info']
     },
-    'help_url': "<%= @help_url %>",
+    'help_url': "http://servicedesk.naturalis.nl",
     'exceptions': {'recoverable': exceptions.RECOVERABLE,
                    'not_found': exceptions.NOT_FOUND,
                    'unauthorized': exceptions.UNAUTHORIZED},
