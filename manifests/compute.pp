@@ -24,16 +24,39 @@ class role_openstack::compute(
 ){
   
   include stdlib
+
+  $ipaddresses = ipaddresses()
+  $host_aliases = flatten([ $::fqdn, $::hostname, $ipaddresses ])
+
+  @@sshkey { "${::fqdn}_dsa":
+    host_aliases => $host_aliases,
+    type => dsa,
+    key => $::sshdsakey,
+    tag => $openstack_cluster_id,
+  }
+  
+  @@sshkey { "${::fqdn}_rsa":
+    host_aliases => $host_aliases,
+    type => rsa,
+    key => $::sshrsakey,
+    tag => $openstack_cluster_id,
+  }
+  Sshkey <<| tag == $openstack_cluster_id |>> {
+    ensure => present,
+  }
+
   if $ceph_fsid != 'false' {
     file {'/etc/ceph':
       ensure => directory,
     }
     
-    class {'sshkey_distribute':
-      export_tag => $openstack_cluster_id,
-    }
+    #class {'sshkey_distribute':
+    #  export_tag => $openstack_cluster_id,
+    #}
 
-    Exec <<| tag == $openstack_cluster_id |>> 
+    #Exec <<| tag == $openstack_cluster_id |>> 
+
+  
 
     Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
