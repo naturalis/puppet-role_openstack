@@ -58,10 +58,16 @@ class role_openstack::compute(
     ensure => present,
   }
   
-  user {'nova':
-    ensure => present,
-    shell  => '/bin/bash',
-    home   => '/var/lib/nova'
+  #user {'nova':
+  #  ensure => present,
+  #  shell  => '/bin/bash',
+  #  home   => '/var/lib/nova'
+  #}
+
+  exec { 'set nova shell':
+    command => '/usr/sbin/usermod -s /bin/bash nova',
+    onlyif  => '/bin/cat /etc/passwd | grep nova | grep bash',
+    require => User['nova'],
   }
 
   file { "nova-ssh-dir":
