@@ -36,6 +36,14 @@ class role_openstack::compute::sshkey_distribute(
       require => File['/var/lib/nova'],
       tag     => $export_tag,
     }
+
+    @@exec {"${::fqdn}-add-pub-key-to-known-hosts":
+      command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/known-hosts",
+      #creates => '/var/lib/nova/.ssh/authorized_keys',
+      unless  => "/bin/cat /var/lib/nova/.ssh/known-hosts | /bin/grep '${::nova_pub_sshkey}'", 
+      require => File['/var/lib/nova'],
+      tag     => $export_tag,
+    }
   }
 
 }
