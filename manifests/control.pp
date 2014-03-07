@@ -381,6 +381,12 @@ class role_openstack::control(
     ensure_package => 'present',
   }
 
+  file { 'nova spice service error fix':
+    path    => '/etc/init.d/nova-spicehtml5proxy',
+    ensure  => link,
+    target  => '/lib/init/upstart-job',
+  }
+
   ########################################
 
   #########     CINDER    ################
