@@ -15,7 +15,7 @@ class role_openstack::compute::sshkey_distribute(
   }
 
   exec {"${::fqdn}-generate-sshkey":
-    command => "/bin/su -s '/bin/bash' -c '/usr/bin/ssh-keygen' nova",
+    command => "/bin/su -s '/bin/bash' -c '/usr/bin/ssh-keygen -b 2048 -t rsa -f /var/lib/nova/.ssh/id_rsa -q -N \"\"' nova",
     creates => '/var/lib/nova/.ssh/id_rsa.pub',
     require => File['/var/lib/nova'],
   }
