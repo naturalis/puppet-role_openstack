@@ -31,7 +31,8 @@ class role_openstack::compute::sshkey_distribute(
   if ($::nova_pub_sshkey) {
     @@exec {"${::fqdn}-add-pub-key":
       command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/authorized_keys",
-      creates => '/var/lib/nova/.ssh/authorized_keys',
+      #creates => '/var/lib/nova/.ssh/authorized_keys',
+      unless  => "/bin/cat /var/lib/nova/.ssh/authorized_keys | /bin/grep ${::nova_pub_sshkey}", 
       require => File['/var/lib/nova'],
       tag     => $export_tag,
     }
