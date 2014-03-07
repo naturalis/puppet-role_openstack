@@ -87,7 +87,7 @@ class role_openstack::compute(
     ensure => link,
     path   => '/var/lib/nova/.ssh/known_hosts',
     target => '/etc/ssh/ssh_known_hosts',
-    rquire => File['nova-ssh-dir'],
+    require => File['nova-ssh-dir'],
   }
 
   exec { "nova-copy-host-pup-key":
