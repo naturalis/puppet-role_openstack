@@ -24,11 +24,11 @@ class role_openstack::compute::sshkey_distribute(
     owner   => 'nova',
   }
 
-#  file { "nova-strickhostcheckingdisable":
-#    path    => '/var/lib/nova/.ssh/config',
-#    content => template('role_openstack/ssh_config.erb'),
-#    require => File["nova-ssh-dir"],
-#  }
+  file { "nova-strickhostcheckingdisable":
+    path    => '/var/lib/nova/.ssh/config',
+    content => template('role_openstack/ssh_config.erb'),
+    require => File["nova-ssh-dir"],
+  }
 
   exec {"${::fqdn}-generate-sshkey":
     command => "/bin/su -s '/bin/bash' -c '/usr/bin/ssh-keygen -b 2048 -t rsa -f /var/lib/nova/.ssh/id_rsa -q -N \"\"' nova",
@@ -55,13 +55,13 @@ class role_openstack::compute::sshkey_distribute(
       tag     => $export_tag,
     }
 
-    @@exec {"${::fqdn}-add-pub-key-to-known-hosts":
-      command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/known_hosts",
-      #creates => '/var/lib/nova/.ssh/authorized_keys',
-      unless  => "/bin/cat /var/lib/nova/.ssh/known-hosts | /bin/grep '${::nova_pub_sshkey}'", 
-      require => File["nova-ssh-dir"],
-      tag     => $export_tag,
-    }
+#    @@exec {"${::fqdn}-add-pub-key-to-known-hosts":
+#      command => "/bin/echo ${::nova_pub_sshkey} >> /var/lib/nova/.ssh/known_hosts",
+#      #creates => '/var/lib/nova/.ssh/authorized_keys',
+#      unless  => "/bin/cat /var/lib/nova/.ssh/known-hosts | /bin/grep '${::nova_pub_sshkey}'", 
+#      require => File["nova-ssh-dir"],
+#      tag     => $export_tag,
+#    }
   }
 
 }
