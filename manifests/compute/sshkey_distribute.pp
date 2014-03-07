@@ -8,6 +8,13 @@ class role_openstack::compute::sshkey_distribute(
     ensure => "directory",
   }
 
+  augeas { "sshdns":
+    context => "/files/etc/ssh/sshd_config",
+    changes => [
+        "set StrictHostKeyChecking 'no'",
+      ],
+  } 
+
   file { "${fqdn}-facter-sub-dir":
     path    => "/etc/facter/facts.d",
     ensure  => "directory",
