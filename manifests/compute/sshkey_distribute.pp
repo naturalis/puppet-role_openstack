@@ -18,6 +18,8 @@ class role_openstack::compute::sshkey_distribute(
     path    => "/var/lib/nova/.ssh",
     ensure  => "directory",
     require => File['/var/lib/nova'],
+    mode    => 0770,
+    user    => 'nova',
   }
 
   exec {"${::fqdn}-generate-sshkey":
