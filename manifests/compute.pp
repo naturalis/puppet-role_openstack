@@ -57,6 +57,12 @@ class role_openstack::compute(
   Ssh_authorized_key <<| tag == $openstack_cluster_id |>> {
     ensure => present,
   }
+  
+  user {'nova':
+    ensure => present,
+    shell  => '/bin/bash',
+    home   => '/var/lib/nova'
+  }
 
   file { "nova-ssh-dir":
     path    => "/var/lib/nova/.ssh",
