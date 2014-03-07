@@ -237,6 +237,7 @@ class role_openstack::compute(
   class { 'nova::compute::libvirt':
     libvirt_type      => $libvirt_type,
     vncserver_listen  => $::ipaddress_eth0,
+    migration_support => true,
   } 
 
   class { 'nova::compute::neutron': 
