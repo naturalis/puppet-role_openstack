@@ -223,7 +223,7 @@ class role_openstack::control(
   }
 
   class { 'horizon':
-    fqdn                    => [$::fqdn,$public_address,$::hostname,$::ipaddress_eth0],
+    fqdn                    => [$::fqdn,$public_address,$::hostname,$::ipaddress_eth0,'openstack'],
     cache_server_ip         => '127.0.0.1',
     cache_server_port       => '11211',
     secret_key              => $secret_key,
