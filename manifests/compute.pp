@@ -195,7 +195,16 @@ class role_openstack::compute(
       ],
   }
 
+  package { 'ethtool':
+    ensure => present,
+  }
 
+  # this is to fix network speed
+  exec { 'set gro to off':
+    command => '/sbin/ethtool --offload eth0 gro off',
+    unless  => '/sbin/ethtool --show-offload eth0 | /bin/grep generic-receive-offload | /bin/grep off',
+    require => Package['ethtool'],
+  }
   
   #class {'openstack::repo': 
   #  before => Exec['apt-get-update after repo addition'],
