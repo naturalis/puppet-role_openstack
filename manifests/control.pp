@@ -88,45 +88,49 @@ class role_openstack::control(
       #no before is needed because is it hardcoded in the lvm module
     }
 
-    volume_group {'cinder-volumes':
+    volume_group {'vg_glance_cache':
       ensure            => present,
       physical_volumes  => $lvm_volume_disks,
       #createonly => true,
       before            => Class['openstack::repo'],
     }
+
+    logical_volume {'glance_lib_volume':
+      ensure        => present,
+      volume_group  => 'vg_glance_cache',
+      size          => '250G',
+      stripes       => 2,
+    }
+
+    filesystem  {"/dev/vg_glance_cache/glance_lib_volume":
+      ensure  => present,
+      fs_type => 'ext4',
+    }
+
+    file {'/var/lib/glance':
+      ensure => directory,
+    }
+
+    mount {'/var/lib/glance':
+      ensure    => mounted,
+      atboot    => true,
+      device    => '/dev/vg_glance_cache/glance_lib_volume',
+      fstype    => 'ext4',
+      remounts  => true,
+      options   => 'defaults',
+      require   => [
+        Filesystem['/dev/vg_glance_cache/glance_lib_volume'],
+        File['/var/lib/glance']
+      ],
+      before    => [
+        Exec['apt-get-update after repo addition'],
+        Package['glance'],
+      ],
+    }
+
   }
 
-  logical_volume {'glance_lib_volume':
-    ensure        => present,
-    volume_group  => 'vg_os',
-    size          => '55G',
-  }
 
-  filesystem  {"/dev/vg_os/glance_lib_volume":
-    ensure  => present,
-    fs_type => 'ext4',
-  }
-
-  file {'/var/lib/glance':
-    ensure => directory,
-  }
-
-  mount {'/var/lib/glance':
-    ensure    => mounted,
-    atboot    => true,
-    device    => '/dev/vg_os/glance_lib_volume',
-    fstype    => 'ext4',
-    remounts  => true,
-    options   => 'defaults',
-    require   => [
-      Filesystem['/dev/vg_os/glance_lib_volume'],
-      File['/var/lib/glance']
-    ],
-    before    => [
-      Exec['apt-get-update after repo addition'],
-      Package['glance'],
-    ],
-  }
   
   package { 'ethtool':
     ensure => present,
