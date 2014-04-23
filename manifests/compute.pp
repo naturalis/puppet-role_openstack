@@ -257,7 +257,7 @@ class role_openstack::compute(
   }
   
   class {'nova::compute::spice':
-    agent_enabled               => true,
+    agent_enabled               => false,
     server_listen               => $ipaddress_eth0,
     server_proxyclient_address  => $::ipaddress_eth0,
     proxy_host                  => $control_ip_address,
