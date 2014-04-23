@@ -298,23 +298,34 @@ class role_openstack::compute(
   }
 
 
-  ini_setting { 'set_libvirt_images_type':
+  ini_setting { 'set_force_raw_images':
     path              => '/etc/nova/nova.conf',
     section           => 'DEFAULT',
     key_val_separator => '=',    
-    setting           => 'libvirt_images_type',
-    value             => 'lvm',
+    setting           => 'force_raw_images',
+    value             => 'True',
     ensure            => present,
     require           => File['/etc/nova/nova.conf'],
     notify            => Service['nova-compute'],
   }
 
-  ini_setting { 'set_libvirt_images_volume_group':
+  ini_setting { 'set_cow_images':
     path              => '/etc/nova/nova.conf',
     key_val_separator => '=',    
     section           => 'DEFAULT',
-    setting           => 'libvirt_images_volume_group',
-    value             => 'instance-volumes',
+    setting           => 'use_cow_images',
+    value             => 'True',
+    ensure            => present,
+    require           => File['/etc/nova/nova.conf'],
+    notify            => Service['nova-compute'],
+  }
+
+  ini_setting { 'set_live_migration_flag':
+    path              => '/etc/nova/nova.conf',
+    key_val_separator => '=',    
+    section           => 'DEFAULT',
+    setting           => 'live_migration_flag',
+    value             => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE',
     ensure            => present,
     require           => File['/etc/nova/nova.conf'],
     notify            => Service['nova-compute'],
