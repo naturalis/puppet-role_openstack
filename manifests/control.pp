@@ -389,12 +389,12 @@ class role_openstack::control(
       enabled => true,
   }
 
-  class { 'nova::spicehtml5proxy':
-    enabled        => true,
-    host           => '0.0.0.0',
-    port           => '6082',
-    ensure_package => 'present',
-  }
+  #class { 'nova::spicehtml5proxy':
+  #  enabled        => true,
+  #  host           => '0.0.0.0',
+  #  port           => '6082',
+  #  ensure_package => 'present',
+  #}
 
   file { 'nova spice service error fix':
     path    => '/etc/init.d/nova-spicehtml5proxy',
