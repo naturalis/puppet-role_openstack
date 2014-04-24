@@ -253,7 +253,7 @@ class role_openstack::compute(
     libvirt_type      => $libvirt_type,
 #    vncserver_listen  => '0.0.0.0',
     vncserver_listen  => $::ipaddress_eth0,
-#    migration_support => true,
+    migration_support => true,
   }
   
   class {'nova::compute::spice':
