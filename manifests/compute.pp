@@ -239,7 +239,7 @@ class role_openstack::compute(
     glance_api_servers  => "${control_ip_address}:9292",
     rabbit_host         => $control_ip_address,
     rabbit_virtual_host => '/',
-    debug               => false,
+    debug               => true,
   }
 
   class { 'nova::compute':
@@ -252,7 +252,7 @@ class role_openstack::compute(
   class { 'nova::compute::libvirt':
     libvirt_type      => $libvirt_type,
     vncserver_listen  => '0.0.0.0',
-#    vncserver_listen  => $::ipaddress_eth0,
+#    vncserver_listen  => $::ipaddress_eth0,1
     migration_support => true,
   }
   
