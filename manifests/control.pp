@@ -536,7 +536,7 @@ class role_openstack::control(
       auth_url       => 'http://127.0.0.1:35357/v2.0',
 #      auth_url       => 'http://127.0.0.1:5000/v2.0',
       auth_region    => $region,
-      debug          => true,
+      debug          => false,
   }
 
   class { 'neutron::agents::dhcp':
