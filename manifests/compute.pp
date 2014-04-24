@@ -256,12 +256,12 @@ class role_openstack::compute(
     migration_support => true,
   }
   
-  class {'nova::compute::spice':
-    agent_enabled               => false,
-    server_listen               => $ipaddress_eth0,
-    server_proxyclient_address  => $::ipaddress_eth0,
-    proxy_host                  => $control_ip_address,
-  }
+#  class {'nova::compute::spice':
+#    agent_enabled               => false,
+#    server_listen               => $ipaddress_eth0,
+#    server_proxyclient_address  => $::ipaddress_eth0,
+#    proxy_host                  => $control_ip_address,
+# }
 
   class { 'nova::compute::neutron': 
     libvirt_vif_driver => 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
