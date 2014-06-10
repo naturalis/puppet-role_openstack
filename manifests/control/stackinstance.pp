@@ -227,7 +227,7 @@ class role_openstack::control::stackinstance(
 
   Class['glance::db::mysql'] -> Class['glance::api']
   Class['glance::db::mysql'] -> Class['glance::registry']
-  Class['glance::db::mysql'] -> Class['glance::backend::rbd']
+  Class['glance::db::mysql'] -> Class['glance::backend::file']
 
   class { 'glance::db::mysql':
       user          => 'glance',
@@ -371,7 +371,7 @@ class role_openstack::control::stackinstance(
           Class[cinder::api],
           Class[cinder::scheduler],
           Class[cinder::volume],
-          Class[cinder::volume::rbd]
+          Class[cinder::volume::iscsi]
         ],
   }
 
