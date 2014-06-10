@@ -55,7 +55,7 @@ class role_openstack::control::stackinstance(
     ensure            => present,
     physical_volumes  => $lvm_volume_disks,
     #createonly => true,
-    before            => Class['openstack::repo'],
+    before            => Apt::Source['ubuntu-cloud-archive'],
   }
 
 #  logical_volume {'glance_lib_volume':
