@@ -410,7 +410,7 @@ class role_openstack::control::stackinstance(
   class {'::cinder::volume': }
 
   class {'::cinder::volume::iscsi':
-    $iscsi_ip_address = $::ipaddress_eth0,
+    iscsi_ip_address => $::ipaddress_eth0,
   }
 
   class { 'cinder::glance':
