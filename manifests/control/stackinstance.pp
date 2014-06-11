@@ -44,8 +44,12 @@ class role_openstack::control::stackinstance(
 #  }
 
   # do use local storage for glance/cinder
+  package {'lvm2':
+    ensure => present,
+  }
 
   physical_volume { $lvm_volume_disks:
+    require => Package['lvm2'],
     ensure => present,
     #unless_vg => 'cinder-volumes',
     #no before is needed because is it hardcoded in the lvm module
