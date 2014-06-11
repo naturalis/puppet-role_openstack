@@ -29,87 +29,48 @@ class role_openstack::control::stackinstance(
 
 ){
 
+  stage { 'pre':
+    before => Stage['main'],
+  }
 
  #configure eth1 to be up
   file {'/etc/network/interfaces':
     ensure    => present,
     mode      => '0644',
-    content   => template('role_openstack/interfaces.erb')
+    content   => template('role_openstack/interfaces.erb'),
+    stage => 'pre',
   }
 
   exec {'set interface eth1 to up':
     command   => '/sbin/ifconfig eth1 up',
     unless    => '/sbin/ifconfig | /bin/grep eth1',
-    require   => File['/etc/network/interfaces']
+    require   => File['/etc/network/interfaces'],
+    stage   => 'pre',
   }
 
   # do use local storage for glance/cinder
   package {'lvm2':
     ensure => present,
+    stage => 'pre',
   }
 
   exec {"/sbin/pvcreate ${lvm_volume_disks}":
     unless   => "/sbin/pvdisplay ${lvm_volume_disks}",
     require  => Package['lvm2'],
+    stage => 'pre',
   }
 
   exec {"/sbin/vgcreate cinder-volumes ${lvm_volume_disks}":
     unless   => "/sbin/vgdisplay cinder-volumes",
     require  => Exec["/sbin/pvcreate ${lvm_volume_disks}"],
     before   => Apt::Source['ubuntu-cloud-archive'],
+    stage => 'pre',
   }
-  #physical_volume { $lvm_volume_disks:
-  #  require => Package['lvm2'],
-  #  ensure => present,
-  #  #unless_vg => 'cinder-volumes',
-  #  #no before is needed because is it hardcoded in the lvm module
-  #}
-
-  #volume_group {'cinder-volumes':
-  #  ensure            => present,
-  #  physical_volumes  => $lvm_volume_disks,
-    #createonly => true,
-  #  before            => Apt::Source['ubuntu-cloud-archive'],
-  #}
-
-#  logical_volume {'glance_lib_volume':
-#    ensure        => present,
-#    volume_group  => 'vg_glance_cache',
-#    size          => '250G',
-#    stripes       => 2,
-#  }
-
-#  filesystem  {"/dev/vg_glance_cache/glance_lib_volume":
-#    ensure  => present,
-#    fs_type => 'ext4',
-#  }
-
-#  file {'/var/lib/glance':
-#    ensure => directory,
-#  }
-
-#  mount {'/var/lib/glance':
-#    ensure    => mounted,
-#    atboot    => true,
-#    device    => '/dev/vg_glance_cache/glance_lib_volume',
-#    fstype    => 'ext4',
-#    remounts  => true,
-#    options   => 'defaults',
-#    require   => [
-#      Filesystem['/dev/vg_glance_cache/glance_lib_volume'],
-#      File['/var/lib/glance']
-#    ],
-#    before    => [
-#      Exec['apt-get-update after repo addition'],
-#      Package['glance'],
-#    ],
-#  }
-
-
 
 
   package { 'ethtool':
     ensure => present,
+    stage => 'pre',
   }
 
   # this is to fix network speed
@@ -117,32 +78,26 @@ class role_openstack::control::stackinstance(
     command => '/sbin/ethtool --offload eth1 gro off',
     unless  => '/sbin/ethtool --show-offload eth1 | /bin/grep generic-receive-offload | /bin/grep off',
     require => Package['ethtool'],
+    stage => 'pre',
   }
-
-  #class {'openstack::repo':
-# #   before => Exec['apt-get-update after repo addition']
-  #} ~>
-
-  #exec {'apt-get-update after repo addition':
-  #  command => '/usr/bin/apt-get update',
-  #    before => Class['openstack::controller'],
-  #}
 
   package {'ubuntu-cloud-keyring':
     ensure => present,
     before =>  Apt::Source['ubuntu-cloud-archive'],
+    stage => 'pre',
   }
 
   apt::source { 'ubuntu-cloud-archive':
     location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
     release           => "precise-updates/havana",
     repos             => 'main',
-    required_packages => 'ubuntu-cloud-keyring',
+  #  required_packages => 'ubuntu-cloud-keyring',
   } ~>
 
   exec {'apt-get-update after repo addition':
     command       => '/usr/bin/apt-get update',
     refreshonly  => true,
+    stage => 'pre',
   }
 
   #include apt::update
@@ -158,11 +113,11 @@ class role_openstack::control::stackinstance(
 
 
   #just make sure apt-get update is run before everyting else
-  Exec['apt-get-update after repo addition'] -> Class['keystone::db::mysql']
-  Exec['apt-get-update after repo addition'] -> Class['glance::db::mysql']
-  Exec['apt-get-update after repo addition'] -> Class['nova::db::mysql']
-  Exec['apt-get-update after repo addition'] -> Class['cinder::db::mysql']
-  Exec['apt-get-update after repo addition'] -> Class['neutron::db::mysql']
+  # Exec['apt-get-update after repo addition'] -> Class['keystone::db::mysql']
+  # Exec['apt-get-update after repo addition'] -> Class['glance::db::mysql']
+  # Exec['apt-get-update after repo addition'] -> Class['nova::db::mysql']
+  # Exec['apt-get-update after repo addition'] -> Class['cinder::db::mysql']
+  # Exec['apt-get-update after repo addition'] -> Class['neutron::db::mysql']
 
   #Exec['apt_update'] -> Class['keystone::db::mysql']
   #Exec['apt_update'] -> Class['glance::db::mysql']
@@ -187,9 +142,9 @@ class role_openstack::control::stackinstance(
 
   #########    KEYSTONE   ################
 
-  Class['keystone::db::mysql'] -> Class['keystone']
-  Class['keystone::db::mysql'] -> Class['keystone::roles::admin']
-  Class['keystone::db::mysql'] -> Class['keystone::endpoint']
+  # Class['keystone::db::mysql'] -> Class['keystone']
+  # Class['keystone::db::mysql'] -> Class['keystone::roles::admin']
+  # Class['keystone::db::mysql'] -> Class['keystone::endpoint']
 
   class { 'keystone::db::mysql':
       user          => 'keystone',
@@ -261,9 +216,9 @@ class role_openstack::control::stackinstance(
 
   #########     GLANCE    ################
 
-  Class['glance::db::mysql'] -> Class['glance::api']
-  Class['glance::db::mysql'] -> Class['glance::registry']
-  Class['glance::db::mysql'] -> Class['glance::backend::file']
+  # Class['glance::db::mysql'] -> Class['glance::api']
+  # Class['glance::db::mysql'] -> Class['glance::registry']
+  # Class['glance::db::mysql'] -> Class['glance::backend::file']
 
   class { 'glance::db::mysql':
       user          => 'glance',
@@ -312,11 +267,11 @@ class role_openstack::control::stackinstance(
 
   #########      NOVA     ################
 
-  Class['nova::db::mysql'] -> Class['nova']
-  Class['nova::db::mysql'] -> Class['nova::rabbitmq']
-  Class['nova::db::mysql'] -> Class['nova::api']
-  Class['nova::db::mysql'] -> Class['nova::network::neutron']
-  Class['nova::db::mysql'] -> Class['nova::vncproxy']
+  # Class['nova::db::mysql'] -> Class['nova']
+  # Class['nova::db::mysql'] -> Class['nova::rabbitmq']
+  # Class['nova::db::mysql'] -> Class['nova::api']
+  # Class['nova::db::mysql'] -> Class['nova::network::neutron']
+  # Class['nova::db::mysql'] -> Class['nova::vncproxy']
 
   class { 'nova::db::mysql':
       user          => 'nova',
