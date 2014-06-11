@@ -128,6 +128,11 @@ class role_openstack::control::stackinstance(
   #    before => Class['openstack::controller'],
   #}
 
+  package {'ubuntu-cloud-keyring':
+    ensure => present,
+    before =>  Apt::Source['ubuntu-cloud-archive'],
+  }
+
   apt::source { 'ubuntu-cloud-archive':
     location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
     release           => "precise-updates/havana",
