@@ -49,7 +49,7 @@ class role_openstack::control::prepare(
 
   package {'ubuntu-cloud-keyring':
     ensure => present,
-    before =>  Apt::Source['ubuntu-cloud-archive'],
+    before => File['/etc/apt/sources.list.d/ubuntu-cloud-archive.list'],
   }
 
   file {'/etc/apt/sources.list.d/ubuntu-cloud-archive.list':
