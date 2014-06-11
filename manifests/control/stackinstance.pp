@@ -23,7 +23,7 @@ class role_openstack::control::stackinstance(
   $public_address         = 'teststack.naturalis.nl',
   $image_cache_size_gb    = 50,
 
-  $lvm_volume_disks       = '/dev/vdb',
+  $lvm_volume_disks       = '/dev/sdc',
   $admin_email            = 'aut@naturalis.nl',
   $region                 = 'Arrakis',
 
@@ -31,17 +31,17 @@ class role_openstack::control::stackinstance(
 
 
  #configure eth1 to be up
-#  file {'/etc/network/interfaces':
-#    ensure    => present,
-#    mode      => '0644',
-#    content   => template('role_openstack/interfaces.erb')
-#  }
+  file {'/etc/network/interfaces':
+    ensure    => present,
+    mode      => '0644',
+    content   => template('role_openstack/interfaces.erb')
+  }
 
-#  exec {'set interface eth1 to up':
-#    command   => '/sbin/ifconfig eth1 up',
-#    unless    => '/sbin/ifconfig | /bin/grep eth1',
-#    require   => File['/etc/network/interfaces']
-#  }
+  exec {'set interface eth1 to up':
+    command   => '/sbin/ifconfig eth1 up',
+    unless    => '/sbin/ifconfig | /bin/grep eth1',
+    require   => File['/etc/network/interfaces']
+  }
 
   # do use local storage for glance/cinder
   package {'lvm2':
@@ -114,8 +114,8 @@ class role_openstack::control::stackinstance(
 
   # this is to fix network speed
   exec { 'set gro to off':
-    command => '/sbin/ethtool --offload eth0 gro off',
-    unless  => '/sbin/ethtool --show-offload eth0 | /bin/grep generic-receive-offload | /bin/grep off',
+    command => '/sbin/ethtool --offload eth1 gro off',
+    unless  => '/sbin/ethtool --show-offload eth1 | /bin/grep generic-receive-offload | /bin/grep off',
     require => Package['ethtool'],
   }
 
