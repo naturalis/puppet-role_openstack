@@ -34,7 +34,8 @@ class role_openstack::control::stackinstance(
   }
 
   class {'::role_openstack::control::prepare':
-    stage => 'pre',
+    lvm_volume_disks  => $lvm_volume_disks,
+    stage             => 'pre',
   }
 
  #configure eth1 to be up

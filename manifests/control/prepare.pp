@@ -1,6 +1,10 @@
+#
+#
+#
+#
 class role_openstack::control::prepare(
-  
-  )
+  $lvm_volume_disks,
+)
 {
 
   file {'/etc/network/interfaces':
@@ -23,11 +27,10 @@ class role_openstack::control::prepare(
   exec {"/sbin/pvcreate ${lvm_volume_disks}":
     unless   => "/sbin/pvdisplay ${lvm_volume_disks}",
     require  => Package['lvm2'],
-    stage => 'pre',
   }
 
   exec {"/sbin/vgcreate cinder-volumes ${lvm_volume_disks}":
-    unless   => "/sbin/vgdisplay cinder-volumes",
+    unless   => '/sbin/vgdisplay cinder-volumes',
     require  => Exec["/sbin/pvcreate ${lvm_volume_disks}"],
     before   => Apt::Source['ubuntu-cloud-archive'],
   }
@@ -51,14 +54,14 @@ class role_openstack::control::prepare(
 
   apt::source { 'ubuntu-cloud-archive':
     location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-    release           => "precise-updates/havana",
+    release           => 'precise-updates/havana',
     repos             => 'main',
   #  required_packages => 'ubuntu-cloud-keyring',
   } ~>
 
   exec {'apt-get-update after repo addition':
     command       => '/usr/bin/apt-get update',
-    refreshonly  => true,
+    refreshonly   => true,
   }
 
 }
