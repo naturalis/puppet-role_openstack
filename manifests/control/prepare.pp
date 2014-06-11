@@ -32,7 +32,7 @@ class role_openstack::control::prepare(
   exec {"/sbin/vgcreate cinder-volumes ${lvm_volume_disks}":
     unless   => '/sbin/vgdisplay cinder-volumes',
     require  => Exec["/sbin/pvcreate ${lvm_volume_disks}"],
-    before   => Apt::Source['ubuntu-cloud-archive'],
+  #  before   => Apt::Source['ubuntu-cloud-archive'],
   }
 
 
@@ -52,16 +52,25 @@ class role_openstack::control::prepare(
     before =>  Apt::Source['ubuntu-cloud-archive'],
   }
 
-  apt::source { 'ubuntu-cloud-archive':
-    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-    release           => 'precise-updates/havana',
-    repos             => 'main',
+  file {'/etc/apt/sources.list.d/ubuntu-cloud-archive.list':
+    ensure    => present,
+    mode      => '0644',
+    content   => template('role_openstack/ubuntu-cloud-archive.list.erb'),
+  }
+
+  #apt::source { 'ubuntu-cloud-archive':
+  #  location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+  #  release           => 'precise-updates/havana',
+  #  repos             => 'main',
   #  required_packages => 'ubuntu-cloud-keyring',
-  } ~>
+  #} ~>
+
+
 
   exec {'apt-get-update after repo addition':
     command       => '/usr/bin/apt-get update',
     refreshonly   => true,
+    subscribe     => File['/etc/apt/sources.list.d/ubuntu-cloud-archive.list'],
   }
 
 }
