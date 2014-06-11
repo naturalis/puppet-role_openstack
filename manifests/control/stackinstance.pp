@@ -23,7 +23,7 @@ class role_openstack::control::stackinstance(
   $public_address         = 'teststack.naturalis.nl',
   $image_cache_size_gb    = 50,
 
-  $lvm_volume_disks       = ['/dev/vdb'],
+  $lvm_volume_disks       = '/dev/vdb',
   $admin_email            = 'aut@naturalis.nl',
   $region                 = 'Arrakis',
 
@@ -48,19 +48,29 @@ class role_openstack::control::stackinstance(
     ensure => present,
   }
 
-  physical_volume { $lvm_volume_disks:
-    require => Package['lvm2'],
-    ensure => present,
-    #unless_vg => 'cinder-volumes',
-    #no before is needed because is it hardcoded in the lvm module
+  exec {"/sbin/pvcreate ${lvm_volume_disks}":
+    unless   => "/sbin/pvdisplay ${lvm_volume_disks}",
+    require  => Package['lvm2'],
   }
 
-  volume_group {'cinder-volumes':
-    ensure            => present,
-    physical_volumes  => $lvm_volume_disks,
-    #createonly => true,
-    before            => Apt::Source['ubuntu-cloud-archive'],
+  exec {"/sbin/vgcreate cinder-volumes ${lvm_volume_disks}":
+    unless   => "/sbin/vgcreate cinder-volumes",
+    require  => Exec["/sbin/pvcreate ${lvm_volume_disks}"],
+    before   => Apt::Source['ubuntu-cloud-archive'],
   }
+  #physical_volume { $lvm_volume_disks:
+  #  require => Package['lvm2'],
+  #  ensure => present,
+  #  #unless_vg => 'cinder-volumes',
+  #  #no before is needed because is it hardcoded in the lvm module
+  #}
+
+  #volume_group {'cinder-volumes':
+  #  ensure            => present,
+  #  physical_volumes  => $lvm_volume_disks,
+    #createonly => true,
+  #  before            => Apt::Source['ubuntu-cloud-archive'],
+  #}
 
 #  logical_volume {'glance_lib_volume':
 #    ensure        => present,
