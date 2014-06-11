@@ -128,42 +128,42 @@ class role_openstack::control::stackinstance(
   #    before => Class['openstack::controller'],
   #}
 
-#  apt::source { 'ubuntu-cloud-archive':
-#    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-#    release           => "precise-updates/havana",
-#    repos             => 'main',
-#    required_packages => 'ubuntu-cloud-keyring',
-#  } ~>
-
-#  exec {'apt-get-update after repo addition':
-#    command       => '/usr/bin/apt-get update',
-#    refreshonly  => true,
-#  }
-
-  include apt::update
-
   apt::source { 'ubuntu-cloud-archive':
     location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
     release           => "precise-updates/havana",
     repos             => 'main',
     required_packages => 'ubuntu-cloud-keyring',
+  } ~>
+
+  exec {'apt-get-update after repo addition':
+    command       => '/usr/bin/apt-get update',
+    refreshonly  => true,
   }
 
-  Exec['apt_update'] -> Package<||>
+  #include apt::update
+
+#  apt::source { 'ubuntu-cloud-archive':
+#    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
+#    release           => "precise-updates/havana",
+#    repos             => 'main',
+#    required_packages => 'ubuntu-cloud-keyring',
+#  }
+#
+#  Exec['apt_update'] -> Package<||>
 
 
   #just make sure apt-get update is run before everyting else
-  #Exec['apt-get-update after repo addition'] -> Class['keystone::db::mysql']
-  #Exec['apt-get-update after repo addition'] -> Class['glance::db::mysql']
-  #Exec['apt-get-update after repo addition'] -> Class['nova::db::mysql']
-  #Exec['apt-get-update after repo addition'] -> Class['cinder::db::mysql']
-  #Exec['apt-get-update after repo addition'] -> Class['neutron::db::mysql']
+  Exec['apt-get-update after repo addition'] -> Class['keystone::db::mysql']
+  Exec['apt-get-update after repo addition'] -> Class['glance::db::mysql']
+  Exec['apt-get-update after repo addition'] -> Class['nova::db::mysql']
+  Exec['apt-get-update after repo addition'] -> Class['cinder::db::mysql']
+  Exec['apt-get-update after repo addition'] -> Class['neutron::db::mysql']
 
-  Exec['apt_update'] -> Class['keystone::db::mysql']
-  Exec['apt_update'] -> Class['glance::db::mysql']
-  Exec['apt_update'] -> Class['nova::db::mysql']
-  Exec['apt_update'] -> Class['cinder::db::mysql']
-  Exec['apt_update'] -> Class['neutron::db::mysql']
+  #Exec['apt_update'] -> Class['keystone::db::mysql']
+  #Exec['apt_update'] -> Class['glance::db::mysql']
+  #Exec['apt_update'] -> Class['nova::db::mysql']
+  #Exec['apt_update'] -> Class['cinder::db::mysql']
+  #Exec['apt_update'] -> Class['neutron::db::mysql']
 
   ###########    MYSQL   #################
 
