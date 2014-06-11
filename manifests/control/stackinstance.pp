@@ -54,7 +54,7 @@ class role_openstack::control::stackinstance(
   }
 
   exec {"/sbin/vgcreate cinder-volumes ${lvm_volume_disks}":
-    unless   => "/sbin/vgcreate cinder-volumes",
+    unless   => "/sbin/vgdisplay cinder-volumes",
     require  => Exec["/sbin/pvcreate ${lvm_volume_disks}"],
     before   => Apt::Source['ubuntu-cloud-archive'],
   }
