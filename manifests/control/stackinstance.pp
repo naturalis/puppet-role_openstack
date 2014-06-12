@@ -19,7 +19,7 @@ class role_openstack::control::stackinstance(
   $cinder_db_password     = '75ad02d7-a47f-497a-9014-c90bc5eadd71',
   $cinder_user_password   = 'abd16a64-a52c-4770-9f09-47db24ffac93',
 
-  $public_address         = 'teststack.naturalis.nl',
+  $public_address         = 'localhost',
   $image_cache_size_gb    = 50,
 
   $lvm_volume_disks       = '/dev/sdc',
@@ -28,9 +28,11 @@ class role_openstack::control::stackinstance(
 
 ){
 
-  stage { 'pre':
-    before => Stage['main'],
-  }
+  #stage { 'pre':
+  #  before => Stage['main'],
+  #}
+
+  Stage['pre'] -> Stage['main']
 
   class {'::role_openstack::control::prepare':
     lvm_volume_disks  => $lvm_volume_disks,
