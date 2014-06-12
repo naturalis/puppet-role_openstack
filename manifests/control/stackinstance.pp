@@ -28,9 +28,7 @@ class role_openstack::control::stackinstance(
 
 ){
 
-  #stage { 'pre':
-  #  before => Stage['main'],
-  #}
+  stage { 'pre': }
 
   Stage['pre'] -> Stage['main']
 
