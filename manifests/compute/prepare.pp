@@ -6,72 +6,7 @@ class role_openstack::compute::prepare(
   $image_cache_size_gb,
 ){
 
-  include stdlib
-
-  $ipaddresses = ipaddresses()
-  $host_aliases = flatten([ $::fqdn, $::hostname, $ipaddresses ])
-
-  @@sshkey { "${::fqdn}_dsa_${::sshrsakey}":
-    host_aliases  => $host_aliases,
-    type          => dsa,
-    key           => $::sshdsakey,
-    tag           => $openstack_cluster_id,
-  }
-
-  @@sshkey { "${::fqdn}_rsa_${::sshrsakey}":
-    host_aliases => $host_aliases,
-    type         => rsa,
-    key          => $::sshrsakey,
-    tag          => $openstack_cluster_id,
-  }
-
-  @@ssh_authorized_key { "${::fqdn}_rsa_${::sshrsakey}":
-    ensure   => present,
-    key      => $::sshrsakey,
-    type     => ssh-rsa,
-    user     => 'nova',
-    tag      => $openstack_cluster_id,
-  }
-
-  Sshkey <<| tag == $openstack_cluster_id |>> {
-    ensure => present,
-  }
-
-  Ssh_authorized_key <<| tag == $openstack_cluster_id |>> {
-    ensure => present,
-  }
-
-  #user {'nova':
-  #  ensure => present,
-  #  shell  => '/bin/bash',
-  #  home   => '/var/lib/nova'
-  #}
-
-  exec { 'set nova shell':
-    command => '/usr/sbin/usermod -s /bin/bash nova',
-    unless  => '/bin/cat /etc/passwd | grep nova | grep bash',
-    require => User['nova'],
-  }
-
-  file { 'nova-ssh-dir':
-    ensure  => 'directory',
-    path    => '/var/lib/nova/.ssh',
-    require => File['/var/lib/nova'],
-    mode    => '0770',
-    owner   => 'nova',
-  }
-
-  #file { "nova-strickhostcheckingdisable":
-  #  path    => '/var/lib/nova/.ssh/config',
-  #  content => template('role_openstack/ssh_config.erb'),
-  #  require => File["nova-ssh-dir"],
-  #}
-  file {'link to known hosts':
-    ensure  => link,
-    path    => '/var/lib/nova/.ssh/known_hosts',
-    target  => '/etc/ssh/ssh_known_hosts',
-    require => File['nova-ssh-dir'],
-  }
+  
 
 
 
