@@ -437,6 +437,28 @@ class role_openstack::control::stackinstance(
   }
 
   class { 'neutron::agents::vpnaas': }
+
+  ini_setting { 'neutron vpnaas interfacedriver':
+    path              => '/etc/neutron/vpn_agent.ini',
+    key_val_separator => '=',
+    section           => 'DEFAULT',
+    setting           => 'interface_driver',
+    value             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
+    ensure            => present,
+    require           => File['/etc/neutron/vpn_agent.ini'],
+    notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
+  }
+
+  # ini_setting { 'neutron vpnaas interfacedriver':
+  #   path              => '/etc/neutron/vpn_agent.ini',
+  #   key_val_separator => '=',
+  #   section           => 'DEFAULT',
+  #   setting           => 'interface_driver',
+  #   value             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
+  #   ensure            => present,
+  #   require           => File['/etc/nova/nova.conf'],
+  #   notify            => Service['nova-compute'],
+  # }
 ########################################
 
   #end of neutron part
