@@ -143,11 +143,11 @@ class role_openstack::control::stackinstance(
     help_url                => 'http://docs.openstack.org',
     local_settings_template => 'role_openstack/local_settings-teststack.py.erb',
     neutron_options         => {
-      'enable_lb'             => $neutron_use_lbaas,
+      'enable_lb'             => $neutron_lbaas,
       'enable_firewall'       => false,
       'enable_quotas'         => true,
       'enable_security_group' => true,
-      'enable_vpn'            => $neutron_use_vpnaas,
+      'enable_vpn'            => $neutron_vpnaas,
       'profile_support'       => 'None'
     },
   }
@@ -382,7 +382,8 @@ class role_openstack::control::stackinstance(
         region           => $region,
   }
 
-  $service_plugins = "${neutron_use_lbaas}${neutron_use_vpnaas}" ? {
+  $sp_selector = "${neutron_lbaas}${neutron_vpnaas}"
+  $service_plugins = $sp_selector ? {
     'falsefalse'  => [],
     'truefalse'   => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
     'falsetrue'   => ['neutron.services.vpn.plugin.VPNDriverPlugin'],
@@ -440,16 +441,16 @@ class role_openstack::control::stackinstance(
       debug          => false,
   }
 
-  if $neutron_use_lbaas == 'true' {
+  if $neutron_lbaas == 'true' {
 
     class { 'neutron::agents::lbaas':
         use_namespaces => true,
         debug          => false,
     }
-    
+
   }
 
-  if $neutron_use_vpnaas == 'true' {
+  if $neutron_vpnaas == 'true' {
 
     class { 'neutron::agents::vpnaas': }
 
