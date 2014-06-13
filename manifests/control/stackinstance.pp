@@ -28,6 +28,7 @@ class role_openstack::control::stackinstance(
 
   $neutron_lbaas          = false,
   $neutron_vpnaas         = false,
+  $neutron_fwaas          = false,
 
 ){
 
@@ -40,32 +41,6 @@ class role_openstack::control::stackinstance(
     stage             => 'pre',
   }
 
- #configure eth1 to be up
-
-  #include apt::update
-
-#  apt::source { 'ubuntu-cloud-archive':
-#    location          => 'http://ubuntu-cloud.archive.canonical.com/ubuntu',
-#    release           => "precise-updates/havana",
-#    repos             => 'main',
-#    required_packages => 'ubuntu-cloud-keyring',
-#  }
-#
-#  Exec['apt_update'] -> Package<||>
-
-
-  #just make sure apt-get update is run before everyting else
-  # Exec['apt-get-update after repo addition'] -> Class['keystone::db::mysql']
-  # Exec['apt-get-update after repo addition'] -> Class['glance::db::mysql']
-  # Exec['apt-get-update after repo addition'] -> Class['nova::db::mysql']
-  # Exec['apt-get-update after repo addition'] -> Class['cinder::db::mysql']
-  # Exec['apt-get-update after repo addition'] -> Class['neutron::db::mysql']
-
-  #Exec['apt_update'] -> Class['keystone::db::mysql']
-  #Exec['apt_update'] -> Class['glance::db::mysql']
-  #Exec['apt_update'] -> Class['nova::db::mysql']
-  #Exec['apt_update'] -> Class['cinder::db::mysql']
-  #Exec['apt_update'] -> Class['neutron::db::mysql']
 
   ###########    MYSQL   #################
 
@@ -144,7 +119,7 @@ class role_openstack::control::stackinstance(
     local_settings_template => 'role_openstack/local_settings-teststack.py.erb',
     neutron_options         => {
       'enable_lb'             => $neutron_lbaas,
-      'enable_firewall'       => false,
+      'enable_firewall'       => $neutron_fwaas,
       'enable_quotas'         => true,
       'enable_security_group' => true,
       'enable_vpn'            => $neutron_vpnaas,
@@ -382,12 +357,16 @@ class role_openstack::control::stackinstance(
         region           => $region,
   }
 
-  $sp_selector = "${neutron_lbaas}${neutron_vpnaas}"
+  $sp_selector = "${neutron_lbaas}_${neutron_vpnaas}_${neutron_fwaas}"
   $service_plugins = $sp_selector ? {
-    'falsefalse'  => undef,
-    'truefalse'   => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
-    'falsetrue'   => ['neutron.services.vpn.plugin.VPNDriverPlugin'],
-    'truetrue'    => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
+    'false_false_false'  => undef,
+    'true_false_false'   => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
+    'false_true_false'   => ['neutron.services.vpn.plugin.VPNDriverPlugin'],
+    'true_true_false'    => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
+    'false_false_true'   => ['neutron.services.firewall.fwaas_plugin.FirewallPlugin'],
+    'true_false_true'    => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.firewall.fwaas_plugin.FirewallPlugin'],
+    'false_true_true'    => ['neutron.services.vpn.plugin.VPNDriverPlugin','neutron.services.firewall.fwaas_plugin.FirewallPlugin'],
+    'true_true_true'     => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin','neutron.services.firewall.fwaas_plugin.FirewallPlugin'],
   }
 
   class { 'neutron':
@@ -464,6 +443,12 @@ class role_openstack::control::stackinstance(
       notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
     }
   }
+
+  if $neutron_fwaas == 'true' {
+    class { 'neutron::services::fwaas': }
+  }
+
+
   # ini_setting { 'neutron vpnaas interfacedriver':
   #   path              => '/etc/neutron/vpn_agent.ini',
   #   key_val_separator => '=',
