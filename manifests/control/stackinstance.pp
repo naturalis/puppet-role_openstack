@@ -445,7 +445,7 @@ class role_openstack::control::stackinstance(
     setting           => 'interface_driver',
     value             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
     ensure            => present,
-    require           => File['/etc/neutron/vpn_agent.ini'],
+    require           => Class['neutron::server'],
     notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
   }
 
