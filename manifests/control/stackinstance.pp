@@ -389,7 +389,7 @@ class role_openstack::control::stackinstance(
     rabbit_user           => 'openstack',
     rabbit_password       => $rabbit_password,
     debug                 => false,
-    service_plugins       => ['lbaas'],
+    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
   }
 
   class { 'neutron::server':
