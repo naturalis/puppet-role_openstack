@@ -384,7 +384,7 @@ class role_openstack::control::stackinstance(
 
   $sp_selector = "${neutron_lbaas}${neutron_vpnaas}"
   $service_plugins = $sp_selector ? {
-    'falsefalse'  => [],
+    'falsefalse'  => undef,
     'truefalse'   => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
     'falsetrue'   => ['neutron.services.vpn.plugin.VPNDriverPlugin'],
     'truetrue'    => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
