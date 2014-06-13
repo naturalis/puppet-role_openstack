@@ -389,7 +389,7 @@ class role_openstack::control::stackinstance(
     rabbit_user           => 'openstack',
     rabbit_password       => $rabbit_password,
     debug                 => false,
-    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','VPN:Vpn:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default'],
+    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
   }
 
   class { 'neutron::server':
