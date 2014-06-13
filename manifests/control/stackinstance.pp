@@ -26,6 +26,9 @@ class role_openstack::control::stackinstance(
   $admin_email            = 'aut@naturalis.nl',
   $region                 = 'Arrakis',
 
+  $neutron_lbaas          = true,
+  $neutron_vpnaas         = true,
+
 ){
 
   stage { 'pre': }
@@ -140,11 +143,11 @@ class role_openstack::control::stackinstance(
     help_url                => 'http://docs.openstack.org',
     local_settings_template => 'role_openstack/local_settings-teststack.py.erb',
     neutron_options         => {
-      'enable_lb'             => true,
+      'enable_lb'             => $neutron_use_lbaas,
       'enable_firewall'       => false,
       'enable_quotas'         => true,
       'enable_security_group' => true,
-      'enable_vpn'            => true,
+      'enable_vpn'            => $neutron_use_vpnaas,
       'profile_support'       => 'None'
     },
   }
@@ -379,6 +382,12 @@ class role_openstack::control::stackinstance(
         region           => $region,
   }
 
+  $service_plugins = "${neutron_use_lbaas}${neutron_use_vpnaas}" ? {
+    'falsefalse'  => [],
+    'truefalse'   => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
+    'falsetrue'   => ['neutron.services.vpn.plugin.VPNDriverPlugin'],
+    'truetrue'    => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
+  }
 
   class { 'neutron':
     enabled               => true,
@@ -389,7 +398,7 @@ class role_openstack::control::stackinstance(
     rabbit_user           => 'openstack',
     rabbit_password       => $rabbit_password,
     debug                 => false,
-    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','neutron.services.vpn.plugin.VPNDriverPlugin'],
+    service_plugins       => $service_plugins,
   }
 
   class { 'neutron::server':
@@ -431,23 +440,26 @@ class role_openstack::control::stackinstance(
       debug          => false,
   }
 
-  class { 'neutron::agents::lbaas':
-      use_namespaces => true,
-      debug          => false,
+  if $neutron_use_lbaas == 'true' {
+    class { 'neutron::agents::lbaas':
+        use_namespaces => true,
+        debug          => false,
+    }
   }
 
-  class { 'neutron::agents::vpnaas': }
+  if $neutron_use_vpnaas == 'true' {
+    class { 'neutron::agents::vpnaas': }
 
-  ini_setting { 'neutron vpnaas interfacedriver':
-    path              => '/etc/neutron/vpn_agent.ini',
-    key_val_separator => '=',
-    section           => 'DEFAULT',
-    setting           => 'interface_driver',
-    value             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
-    ensure            => present,
-    notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
+    ini_setting { 'neutron vpnaas interfacedriver':
+      path              => '/etc/neutron/vpn_agent.ini',
+      key_val_separator => '=',
+      section           => 'DEFAULT',
+      setting           => 'interface_driver',
+      value             => 'neutron.agent.linux.interface.OVSInterfaceDriver',
+      ensure            => present,
+      notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
+    }
   }
-
   # ini_setting { 'neutron vpnaas interfacedriver':
   #   path              => '/etc/neutron/vpn_agent.ini',
   #   key_val_separator => '=',
