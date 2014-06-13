@@ -138,7 +138,7 @@ class role_openstack::control::stackinstance(
     django_debug            => 'False',
     api_result_limit        => 1000,
     help_url                => 'http://docs.openstack.org',
-    local_settings_template => 'role_openstack/local_settings.py.erb',
+    local_settings_template => 'role_openstack/local_settings-teststack.py.erb',
     neutron_options         => {
       'enable_lb'             => true,
       'enable_firewall'       => false,
@@ -389,7 +389,7 @@ class role_openstack::control::stackinstance(
     rabbit_user           => 'openstack',
     rabbit_password       => $rabbit_password,
     debug                 => false,
-    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin'],
+    service_plugins       => ['neutron.services.loadbalancer.plugin.LoadBalancerPlugin','VPN:Vpn:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default'],
   }
 
   class { 'neutron::server':
@@ -435,6 +435,8 @@ class role_openstack::control::stackinstance(
       use_namespaces => true,
       debug          => false,
   }
+
+  class { 'neutron::agents::vpnaas': }
 ########################################
 
   #end of neutron part
