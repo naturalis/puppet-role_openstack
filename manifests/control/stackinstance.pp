@@ -144,7 +144,7 @@ class role_openstack::control::stackinstance(
       'enable_firewall'       => false,
       'enable_quotas'         => true,
       'enable_security_group' => true,
-      'enable_vpn'            => false,
+      'enable_vpn'            => true,
       'profile_support'       => 'None'
     },
   }
