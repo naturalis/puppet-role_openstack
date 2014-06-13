@@ -26,8 +26,8 @@ class role_openstack::control::stackinstance(
   $admin_email            = 'aut@naturalis.nl',
   $region                 = 'Arrakis',
 
-  $neutron_lbaas          = true,
-  $neutron_vpnaas         = true,
+  $neutron_lbaas          = false,
+  $neutron_vpnaas         = false,
 
 ){
 
@@ -441,13 +441,16 @@ class role_openstack::control::stackinstance(
   }
 
   if $neutron_use_lbaas == 'true' {
+
     class { 'neutron::agents::lbaas':
         use_namespaces => true,
         debug          => false,
     }
+    
   }
 
   if $neutron_use_vpnaas == 'true' {
+
     class { 'neutron::agents::vpnaas': }
 
     ini_setting { 'neutron vpnaas interfacedriver':
