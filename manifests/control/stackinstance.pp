@@ -431,7 +431,22 @@ class role_openstack::control::stackinstance(
 
   if $neutron_vpnaas == 'true' {
 
+    package { 'openswan':
+      ensure => installed,
+    }
+
+    package { 'neutron-plugin-vpn-agent':
+      ensure => installed,
+    }
+
     class { 'neutron::agents::vpnaas': }
+
+    file { '/etc/neutron/rootwrap.d/vpnaas.filters' :
+      ensure    => present,
+      mode      => '0644',
+      content   => template('role_openstack/vpnaas.filters.erb'),
+      notify    => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
+    }
 
     ini_setting { 'neutron vpnaas interfacedriver':
       path              => '/etc/neutron/vpn_agent.ini',
@@ -442,6 +457,18 @@ class role_openstack::control::stackinstance(
       ensure            => present,
       notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
     }
+
+    ini_setting { 'neutron vpnaas agent':
+      path              => '/etc/neutron/vpn_agent.ini',
+      key_val_separator => '=',
+      section           => 'DEFAULT',
+      setting           => 'vpn_device_driver',
+      value             => 'neutron.services.vpn.device_drivers.ipsec.OpenSwanDriver',
+      ensure            => present,
+      notify            => [Service['neutron-server'],Service['neutron-plugin-vpn-agent']],
+    }
+
+
   }
 
   if $neutron_fwaas == 'true' {
