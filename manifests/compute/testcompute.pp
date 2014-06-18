@@ -81,6 +81,17 @@ class role_openstack::compute::testcompute(
     owner   => 'nova',
   }
 
+  file {'/etc/ssh/ssh_known_hosts':
+    ensure => present,
+    mode   => '0644',
+  }
+
+  exec { 'nova-copy-host-pup-key':
+    command => '/bin/cp /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa && /bin/chown nova:nova /var/lib/nova/.ssh/id_rsa',
+    require => File['nova-ssh-dir'],
+    unless  => '/usr/bin/diff /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa',
+  }
+
   #file { "nova-strickhostcheckingdisable":
   #  path    => '/var/lib/nova/.ssh/config',
   #  content => template('role_openstack/ssh_config.erb'),
