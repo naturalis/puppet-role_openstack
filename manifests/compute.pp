@@ -1,5 +1,5 @@
 class role_openstack::compute(
-  
+
   $ceph_cinder_key,
   $cinder_rbd_secret_uuid,
   $nova_user_password,
@@ -18,11 +18,11 @@ class role_openstack::compute(
   $volume_backend       = 'lvm',
   $ceph_fsid            = 'false',
   $region               = 'Leiden',
-  
-  
+
+
 
 ){
-  
+
   include stdlib
 
   $ipaddresses = ipaddresses()
@@ -34,7 +34,7 @@ class role_openstack::compute(
     key => $::sshdsakey,
     tag => $openstack_cluster_id,
   }
-  
+
   @@sshkey { "${::fqdn}_rsa_${::sshrsakey}":
     host_aliases => $host_aliases,
     type => rsa,
@@ -44,7 +44,7 @@ class role_openstack::compute(
 
   @@ssh_authorized_key { "${::fqdn}_rsa_${::sshrsakey}":
     ensure   => present,
-    key      => $::sshrsakey, 
+    key      => $::sshrsakey,
     type     => ssh-rsa,
     user     => 'nova',
     tag      => $openstack_cluster_id,
@@ -57,7 +57,7 @@ class role_openstack::compute(
   Ssh_authorized_key <<| tag == $openstack_cluster_id |>> {
     ensure => present,
   }
-  
+
   #user {'nova':
   #  ensure => present,
   #  shell  => '/bin/bash',
@@ -96,25 +96,30 @@ class role_openstack::compute(
     unless  => '/usr/bin/diff /etc/ssh/ssh_host_rsa_key /var/lib/nova/.ssh/id_rsa',
   }
 
+  file {'/etc/ssh/ssh_known_hosts':
+    ensure => present,
+    mode   => '0644',
+  }
+
   if $ceph_fsid != 'false' {
     file {'/etc/ceph':
       ensure => directory,
     }
-    
+
     #class {'sshkey_distribute':
     #  export_tag => $openstack_cluster_id,
     #}
 
-    #Exec <<| tag == $openstack_cluster_id |>> 
+    #Exec <<| tag == $openstack_cluster_id |>>
 
-  
+
 
     Ini_setting <<| tag == "cephconf-${$ceph_fsid}" |>> {
       require => File['/etc/ceph'],
     }
-    
+
     class { 'role_openstack::ceph::package': }
-    
+
     file {'/tmp/secret.xml':
       ensure => present,
       content => template('role_openstack/secret.xml.erb')
@@ -161,7 +166,7 @@ class role_openstack::compute(
     physical_volumes => $raid_dev_name,
   #  before => Class['openstack::repo'],
   }
-  
+
   logical_volume {'nova_lib_volume':
     ensure        => present,
     volume_group  => 'instance-volumes',
@@ -205,8 +210,8 @@ class role_openstack::compute(
     unless  => '/sbin/ethtool --show-offload eth0 | /bin/grep generic-receive-offload | /bin/grep off',
     require => Package['ethtool'],
   }
-  
-  #class {'openstack::repo': 
+
+  #class {'openstack::repo':
   #  before => Exec['apt-get-update after repo addition'],
   #} ~>
   apt::source { 'ubuntu-cloud-archive':
@@ -215,7 +220,7 @@ class role_openstack::compute(
     repos             => 'main',
     required_packages => 'ubuntu-cloud-keyring',
   } ~>
-  
+
   exec {'apt-get-update after repo addition':
     command     => '/usr/bin/apt-get update',
     unless      => '/usr/bin/test -f /etc/apt/sources.list.d/ubuntu-cloud-archive.list',
@@ -230,7 +235,7 @@ class role_openstack::compute(
       Class[nova::network::neutron]
     ],
   }
-  
+
   class { 'nova':
     sql_connection      => "mysql://nova:${nova_db_password}@${control_ip_address}/nova",
     rabbit_userid       => 'openstack',
@@ -255,7 +260,7 @@ class role_openstack::compute(
 #    vncserver_listen  => $::ipaddress_eth0,1
     migration_support => true,
   }
-  
+
 #  class {'nova::compute::spice':
 #    agent_enabled               => false,
 #    server_listen               => $ipaddress_eth0,
@@ -263,9 +268,9 @@ class role_openstack::compute(
 #    proxy_host                  => $control_ip_address,
 # }
 
-  class { 'nova::compute::neutron': 
+  class { 'nova::compute::neutron':
     libvirt_vif_driver => 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
-  } 
+  }
 
   class { 'neutron':
     enabled               => true,
@@ -301,7 +306,7 @@ class role_openstack::compute(
   ini_setting { 'set_force_raw_images':
     path              => '/etc/nova/nova.conf',
     section           => 'DEFAULT',
-    key_val_separator => '=',    
+    key_val_separator => '=',
     setting           => 'force_raw_images',
     value             => 'True',
     ensure            => present,
@@ -311,7 +316,7 @@ class role_openstack::compute(
 
   ini_setting { 'set_cow_images':
     path              => '/etc/nova/nova.conf',
-    key_val_separator => '=',    
+    key_val_separator => '=',
     section           => 'DEFAULT',
     setting           => 'use_cow_images',
     value             => 'True',
@@ -322,7 +327,7 @@ class role_openstack::compute(
 
   ini_setting { 'set_live_migration_flag':
     path              => '/etc/nova/nova.conf',
-    key_val_separator => '=',    
+    key_val_separator => '=',
     section           => 'DEFAULT',
     setting           => 'live_migration_flag',
     value             => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE',
@@ -388,7 +393,7 @@ class role_openstack::compute(
 #    vncproxy_host => $control_ip_address,
 #    vncserver_listen => false,
 #  # cinder / volumes
-#  # manage_volumes => true, 
+#  # manage_volumes => true,
 #  #  manage_volumes => false,
 #  #  cinder_volume_driver => 'iscsi',
 #  #  cinder_db_password => 'Openstack_123',
